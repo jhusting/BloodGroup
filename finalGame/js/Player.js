@@ -5,10 +5,12 @@ function Player(game, key)
 
 	this.anchor.set(0.5);
 
-	this.animations.add('rightIdle', ['pl_RightRun07'], 30, true);
-	this.animations.add('leftIdle', ['pl_LeftRun07'], 30, true);
-	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('pl_RightRun', 1, 7, '', 2), 30, true);
-	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('pl_LeftRun', 1, 7, '', 2), 30, true);
+	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 4, '', 2), 6, true);
+	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('pl_LeftIdle', 1, 4, '', 2), 6, true);
+	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('pl_RightRun', 1, 7, '', 2), 18, true);
+	this.animations.add('rightRun_Hurt', Phaser.Animation.generateFrameNames('pl_RightRun', 1, 7, '', 2), 10, true);
+	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('pl_LeftRun', 1, 7, '', 2), 18, true);
+	this.animations.add('leftRun_Hurt', Phaser.Animation.generateFrameNames('pl_LeftRun', 1, 7, '', 2), 10, true);
 	this.animations.play('rightIdle');
 
 	game.physics.arcade.enable(this);
@@ -68,7 +70,11 @@ Player.prototype.update = function()
 				this.body.velocity.x = -this.speed;
 			else
 				this.body.velocity.x = -this.speed/this.diagRatio;
-			this.animations.play('leftRun');
+
+			if(!this.gaunt)
+				this.animations.play('leftRun');
+			else
+				this.animations.play('leftRun_Hurt');
 		}
 		
 		if(game.input.keyboard.isDown(Phaser.Keyboard.D)) 
@@ -77,14 +83,22 @@ Player.prototype.update = function()
 				this.body.velocity.x = this.speed;
 			else
 				this.body.velocity.x = this.speed/this.diagRatio;
-			this.animations.play('rightRun');
+			
+			if(!this.gaunt)
+				this.animations.play('rightRun');
+			else
+				this.animations.play('rightRun_Hurt');
 		}
 	}
 
-	if(game.input.keyboard.lastChar == 'd' && this.body.velocity.x == 0)
-		this.animations.play('rightIdle');
+	if(game.input.keyboard.lastChar == 'a' && this.body.velocity.x == 0)
+	{
+			this.animations.play('leftIdle');
+	}
 	else if (this.body.velocity.x == 0 && this.body.velocity.y == 0)
-		this.animations.play('leftIdle');
+	{
+			this.animations.play('rightIdle');
+	}
 }
 
 function fire(player)

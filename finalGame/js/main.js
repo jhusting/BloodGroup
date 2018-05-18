@@ -35,21 +35,17 @@ Final.Boot.prototype =
 	create: function()
 	{
 		var startMusic = this.add.audio('music');
-		startMusic.play('', 0, .25, true);
+		//startMusic.play('', 0, .25, true);
 		this.add.text(25, 180, 'WASD to Move.\nLeft Click to shoot.' +
 							'\nE to feed on a corpse and regain ammo.' + 
 							'\nSpace to start!', {fontSize: '24px', fill: '#ffffff'});
 		cursors = game.input.keyboard.createCursorKeys();
-		wasDown = false;
 	}, 
 	update: function()
 	{
-		if(game.input.mousePointer.isDown)
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
-			wasDown = true;
-		}
-		if(game.input.mousePointer.isUp && wasDown)
-		{
+			console.log("down!");
 			game.state.start('Play');
 		}
 	}
