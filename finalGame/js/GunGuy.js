@@ -23,6 +23,8 @@ function GunGuy(x, y, game)
 	this.moreLine = new Phaser.Line(x,y, x,y);
 	this.playerLine = new Phaser.Line(x,y, x,y);
 
+	this.lineDist = 225;
+
 	this.graphics = game.add.graphics();
 
 	this.seen = null;
@@ -36,6 +38,10 @@ function GunGuy(x, y, game)
 	this.playerBehind = false;
 	this.shotSound = game.add.audio('shot');
 
+	this.X = game.add.sprite(this.x, this.y, 'X');
+	this.X.anchor.set(0.5);
+	this.X.alpha = 0;
+
 	this.discovered = false;
 	generatePath(this, game, terrainLayer);
 }
@@ -48,14 +54,18 @@ GunGuy.prototype.update = function ()
 	this.bringToTop();
 	if(this.inCamera)
 		this.discovered = true;
-
+	this.X.x = this.x;
+	this.X.y = this.y;
+	//console.log(this.exists);
 	if(this.discovered)
 	{
 		//draw a line from the center of this sprite to the player
 		this.playerLine = new Phaser.Line(this.x, this.y, player.x, player.y);
 		//Convert playerline angle to degrees from radians and normalize to 0-360 instead of 0-180 and 0-(-180)
 		this.playerAng = normRad(this.playerLine.angle);
+
 		var intersects = terrainLayer.getRayCastTiles(this.playerLine, 3, true);
+
 		this.playerBehind = (intersects.length > 0);
 
 		if(this.seen !== null)
@@ -84,11 +94,23 @@ GunGuy.prototype.update = function ()
 		this.lessDeg = normDeg(this.currMidDeg - 30);
 		this.moreDeg = normDeg(this.currMidDeg + 30);
 
-		this.middleLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.currMidDeg), 300);
-		this.lessLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.lessDeg), 300);
-		this.moreLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.moreDeg), 300);
+		this.middleLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.currMidDeg), this.lineDist);
+		this.lessLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.lessDeg), this.lineDist);
+		this.moreLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.moreDeg), this.lineDist);
 
-		if( !this.playerBehind && this.playerLine.length < 300 )
+		var point = getClosestPoint(this.lessLine, terrainLayer, 5);
+		if(point != null)
+		{
+			this.lessLine = new Phaser.Line(this.x, this.y, point.x, point.y);
+		}
+
+		point = getClosestPoint(this.moreLine, terrainLayer, 5);
+		if(point != null)
+		{
+			this.moreLine = new Phaser.Line(this.x, this.y, point.x, point.y);
+		}
+
+		if( !this.playerBehind && this.playerLine.length < this.lineDist )
 		{
 			if(this.moreDeg < 60 && (this.playerAng > this.lessDeg || this.playerAng < this.moreDeg))
 				seenFunction(this);
@@ -108,7 +130,39 @@ GunGuy.prototype.update = function ()
 		}
 		this.currMidDeg += turnTowards(this.currMidDeg, this.middleDeg);
 		this.currMidDeg = normDeg(this.currMidDeg);
+
+		if(this.playerLine.length < 80 && this.seen === null)
+		{
+			this.X.alpha = 1;
+
+			if(game.input.keyboard.isDown(Phaser.Keyboard.Q))
+			{
+				var corpse = new Corpse(game, 1, 0, this.x, this.y);
+				game.add.existing(corpse);
+				this.graphics.destroy();
+				this.X.destroy();
+				this.destroy();
+			}
+		}
+		else
+			this.X.alpha = 0;
 	}
+}
+
+function getClosestPoint(line, layer, step)
+{
+	var coords = line.coordinatesOnLine(step);
+
+	for(var i = 0; i < coords.length; i++)
+	{
+		var coord = coords[i];
+		var tiles = layer.getTiles(coord[0], coord[1], 1, 1, true, false);
+
+		if (tiles.length > 0)
+			return new Phaser.Point(coord[0], coord[1]);
+	}
+
+	return null;
 }
 
 function normDeg(angle)
@@ -169,7 +223,7 @@ function generatePath(guy, game, layer)
 	var randomArr;
 	var numPoints = 3 + Math.random()*2;
 	var grid = 64;
-	console.log('numPoints: ' + numPoints);
+	//console.log('numPoints: ' + numPoints);
 
 	for(var i = 0; i < numPoints; i++)
 	{
@@ -193,12 +247,12 @@ function generatePath(guy, game, layer)
 
 			var intersects = layer.getTiles(testX-16, testY-16, 32, 32, true);
 
-			console.log('lastX: ' + lastX +
+			/*console.log('lastX: ' + lastX +
 						'\nlastY: ' + lastY +
 						'\ntestX: ' + testX + 
 						'\ntestY: ' + testY + 
 						'\nlastlastX: ' + lastlastX + 
-						'\nlastlastY: ' + lastlastY);
+						'\nlastlastY: ' + lastlastY);*/
 			if(intersects.length > 0)
 				occupied = true;
 			if(testX == lastlastX && testY == lastlastY)
@@ -211,7 +265,7 @@ function generatePath(guy, game, layer)
 			lastX = testX;
 			lastY = testY;
 
-			console.log('push: ' + testX + ', ' + testY);
+			//console.log('push: ' + testX + ', ' + testY);
 			lastlastX = guy.path[guy.path.length - 2].x;
 			lastlastY = guy.path[guy.path.length - 2].y;
 		}
@@ -219,7 +273,7 @@ function generatePath(guy, game, layer)
 			break;
 	}
 
-	console.log(guy.path);
+	//console.log(guy.path);
 }
 
 function checkWall(wall, occupied, testX, testY)

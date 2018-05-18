@@ -27,6 +27,7 @@ Final.Boot.prototype =
 		this.load.image('pBlood', 'pBlood.png');
 		//this.load.image('smallBullet', 'smallBullet.png');
 		this.load.image('BGTile', 'BGTile.png');
+		this.load.image('X', 'X.png');
 		this.load.audio('music', '../audio/music.mp3');
 		this.load.audio('shot', '../audio/shot.wav');
 		this.load.tilemap('level', '../tiles/Online/online1.json', null, Phaser.Tilemap.TILED_JSON);
@@ -103,7 +104,7 @@ Final.Play.prototype =
 
 		enemies = game.add.group();
 		var enArr = [ 	[16,18], [24,20], [35,4], [31,9], [36,34], 
-						[32,32], [17,37], [12,36], [6,20], [3,13], [3,21]];
+						[32,30], [17,37], [12,36], [6,20], [3,13], [3,21]];
 
 		for(var i = 0; i < enArr.length; i++)
 		{
@@ -152,16 +153,19 @@ function drawLines(gunGuy, bitmap)
 {
 	gunGuy.graphics.clear();
 	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
-	gunGuy.graphics.lineStyle(2, 0xffffff);
+	gunGuy.graphics.lineStyle(2, 0xffffff, 1);
 
 	gunGuy.graphics.lineTo(gunGuy.lessLine.end.x, gunGuy.lessLine.end.y);
 
 	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
-	gunGuy.graphics.arc(gunGuy.x, gunGuy.y, 300, 
-			gunGuy.lessLine.angle, gunGuy.moreLine.angle);
-
-	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
 	gunGuy.graphics.lineTo(gunGuy.moreLine.end.x, gunGuy.moreLine.end.y);
+
+	//gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
+	if(gunGuy.inCamera)
+	{
+		gunGuy.graphics.lineStyle(2, 0x2779B6, .5);	
+		gunGuy.graphics.arc(gunGuy.x, gunGuy.y, gunGuy.lineDist, 0, Phaser.Math.degToRad(360), false, 60);
+	}
 }
 
 
