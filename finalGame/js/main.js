@@ -46,7 +46,6 @@ Final.Boot.prototype =
 	{
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
-			console.log("down!");
 			game.state.start('Play');
 		}
 	}
@@ -55,7 +54,8 @@ Final.Boot.prototype =
 
 Final.Play = function()
 {
-	var cursors, player, sCam, mouseX, mouseY, walls, gunGuy, enemies, map, terrainLayer, decorationLayer;
+	var cursors, player, sCam, mouseX, mouseY, walls;
+	var gunGuy, enemies, map, terrainLayer, decorationLayer, enemyBullets;
 };
 Final.Play.prototype =
 {
@@ -85,7 +85,6 @@ Final.Play.prototype =
    	 	decorationLayer = map.createLayer('Background');
    	 	terrainLayer = map.createLayer('Walls');
 
-
    	 	map.setCollisionByExclusion([], true, terrainLayer);
    	 	
    	 	terrainLayer.resizeWorld();
@@ -103,6 +102,7 @@ Final.Play.prototype =
 		this.physics.arcade.enable(sCam);
 
 		enemies = game.add.group();
+		enemyBullets = game.add.group();
 		var enArr = [ 	[16,18], [24,20], [35,4], [31,9], [36,34], 
 						[32,30], [17,37], [12,36], [6,20], [3,13], [3,21]];
 
@@ -122,6 +122,7 @@ Final.Play.prototype =
 		game.physics.arcade.collide(player, walls);
 		game.physics.arcade.collide(player, terrainLayer);
 		game.physics.arcade.collide(enemies, terrainLayer);
+		game.physics.arcade.collide(player, enemyBullets, deadFun, null, this);
 		mouseX = game.input.worldX;
 		mouseY = game.input.worldY;	
 		var tX = ((mouseX - player.x) / 6) + player.x;
@@ -144,11 +145,37 @@ Final.Play.prototype =
 	}
 };
 
-function testFun(player, wall)
+Final.Dead = function()
 {
-	console.log("In crate!");
-}
+	var cursors;
+};
+Final.Dead.prototype =
+{
+	preload: function()
+	{
+		console.log('Dead: preload');
+	},
+	create: function()
+	{
+		console.log('Dead: create');
+		this.add.text(25, 180, 'You died.\nPress Space to Restart!', {fontSize: '24px', fill: '#ffffff'});
+		cursors = game.input.keyboard.createCursorKeys();
+	},
+	update: function()
+	{
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+		{
+			console.log("down!");
+			game.state.start('Play');
+		}
+	}
+};
 
+function deadFun(player, bullet)
+{
+	bullet.destroy();
+	game.state.start('Dead');
+}
 function drawLines(gunGuy, bitmap)
 {
 	gunGuy.graphics.clear();
@@ -174,4 +201,5 @@ var game = new Phaser.Game(512, 512, Phaser.AUTO);
 // add states
 game.state.add('Boot', Final.Boot);
 game.state.add('Play', Final.Play);
+game.state.add('Dead', Final.Dead);
 game.state.start('Boot');

@@ -43,6 +43,7 @@ function destroyEnemy(bullet, enemy)
 	if(enemy.seen != null)
 		enemy.seen.destroy();
 
+	enemy.X.destroy();
 	enemy.graphics.destroy();
 	enemy.destroy();
 }

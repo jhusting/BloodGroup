@@ -1,48 +1,14 @@
 function GunGuy(x, y, game)
 {
-	Phaser.Sprite.call(this, game, x, y, 'atlas', 'gunGuy');
+	Enemy.call(this, x, y, game, 'gunGuy');
 
-	this.anchor.set(0.5, 0.5);
 	this.scale.set(0.75);
-
-	game.physics.arcade.enable(this);
-	this.body.collideWorldbounds = true;
-
-	this.path = [ new Phaser.Point(this.x, this.y) ];
-
-	this.lessDeg = -30;
-	this.middleDeg = 0;
-	this.moreDeg = 30;
-
-	this.currMidDeg = this.middleDeg;
-
-	this.playerAng = 0;
-
-	this.middleLine = new Phaser.Line(x,y, x,y);
-	this.lessLine = new Phaser.Line(x,y, x,y);
-	this.moreLine = new Phaser.Line(x,y, x,y);
-	this.playerLine = new Phaser.Line(x,y, x,y);
 
 	this.lineDist = 225;
 
-	this.graphics = game.add.graphics();
-
-	this.seen = null;
-	this.seenX = null;
-	this.seenY = null;
-
-	this.pathIndex = 0;
-	this.pathMover = -1;
-
 	this.bulletCounter = 5;
-	this.playerBehind = false;
 	this.shotSound = game.add.audio('shot');
 
-	this.X = game.add.sprite(this.x, this.y, 'X');
-	this.X.anchor.set(0.5);
-	this.X.alpha = 0;
-
-	this.discovered = false;
 	generatePath(this, game, terrainLayer);
 }
 
@@ -51,6 +17,7 @@ GunGuy.prototype.constructor = GunGuy;
 
 GunGuy.prototype.update = function ()
 {
+	Enemy.prototype.update();
 	this.bringToTop();
 	if(this.inCamera)
 		this.discovered = true;
@@ -208,6 +175,7 @@ function seenFunction(guy)
 		guy.shotSound.play('', 0, .1, false);
 		var bull = game.add.sprite(guy.x - 8 + Math.random()*16,
 								   guy.y - 8 + Math.random()*16, 'atlas', 'smallBullet');
+		enemyBullets.add(bull);
 		game.physics.arcade.enable(bull);
 		game.physics.arcade.moveToXY(bull, player.x, player.y, 700);
 		guy.bulletCounter = -1;
