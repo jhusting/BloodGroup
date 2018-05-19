@@ -9,7 +9,7 @@ function GunGuy(x, y, game)
 	this.bulletCounter = 5;
 	this.shotSound = game.add.audio('shot');
 
-	generatePath(this, game, terrainLayer);
+	//generatePath(this, game, terrainLayer);
 }
 
 GunGuy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -17,10 +17,10 @@ GunGuy.prototype.constructor = GunGuy;
 
 GunGuy.prototype.update = function ()
 {
-	Enemy.prototype.update();
 	this.bringToTop();
 	if(this.inCamera)
 		this.discovered = true;
+
 	this.X.x = this.x;
 	this.X.y = this.y;
 	//console.log(this.exists);
@@ -31,9 +31,9 @@ GunGuy.prototype.update = function ()
 		//Convert playerline angle to degrees from radians and normalize to 0-360 instead of 0-180 and 0-(-180)
 		this.playerAng = normRad(this.playerLine.angle);
 
-		var intersects = terrainLayer.getRayCastTiles(this.playerLine, 3, true);
+		var intersects = getClosestPoint(this.playerLine, terrainLayer, 3);
 
-		this.playerBehind = (intersects.length > 0);
+		this.playerBehind = (intersects !== null);
 
 		if(this.seen !== null)
 		{
@@ -116,51 +116,10 @@ GunGuy.prototype.update = function ()
 	}
 }
 
-function getClosestPoint(line, layer, step)
-{
-	var coords = line.coordinatesOnLine(step);
-
-	for(var i = 0; i < coords.length; i++)
-	{
-		var coord = coords[i];
-		var tiles = layer.getTiles(coord[0], coord[1], 1, 1, true, false);
-
-		if (tiles.length > 0)
-			return new Phaser.Point(coord[0], coord[1]);
-	}
-
-	return null;
-}
-
-function normDeg(angle)
-{
-	if(angle < 0)
-		return angle + 360;
-	else if(angle > 360)
-		return angle - 360;
-
-	return angle;
-}
-
-function normRad(angle)
-{
-	return Phaser.Math.radToDeg(Phaser.Math.normalizeAngle(angle));
-}
-
-
-function turnTowards(angle1, angle2)
-{
-	var diff = angle2 - angle1;
-
-	if(diff <= 1 && diff >= 0)
-		return 0;
-	else if(diff < 180 && diff > 0)
-		return 2;
-	else if(diff < -180 && diff > -360)
-		return 2;
-	else return -2;
-}
-
+/*
+	seenFunction
+	Handles what happens when a gunGuy sees a player
+*/
 function seenFunction(guy)
 {
 	if(guy.seen == null)
@@ -183,73 +142,11 @@ function seenFunction(guy)
 	guy.bulletCounter++;
 }
 
-function generatePath(guy, game, layer)
-{
-	var lastlastX = guy.x, lastlastY = guy.y;
-	var lastX = guy.x, lastY = guy.y;
-	var testX = guy.x, testY = guy.y;
-	var randomArr;
-	var numPoints = 3 + Math.random()*2;
-	var grid = 64;
-	//console.log('numPoints: ' + numPoints);
-
-	for(var i = 0; i < numPoints; i++)
-	{
-		randomArr = [1, 2, 3, 4];
-		var occupied = true;
-		for(var j = 0; occupied && j < 4; j++)
-		{
-			testX = lastX;
-			testY = lastY;
-			var direction = Phaser.ArrayUtils.removeRandomItem(randomArr);
-			occupied = false;
-
-			if(direction == 1)
-				testX += grid;
-			else if(direction == 2)
-				testY += grid;
-			else if(direction == 3)
-				testX -= grid;
-			else
-				testY -= grid;
-
-			var intersects = layer.getTiles(testX-16, testY-16, 32, 32, true);
-
-			/*console.log('lastX: ' + lastX +
-						'\nlastY: ' + lastY +
-						'\ntestX: ' + testX + 
-						'\ntestY: ' + testY + 
-						'\nlastlastX: ' + lastlastX + 
-						'\nlastlastY: ' + lastlastY);*/
-			if(intersects.length > 0)
-				occupied = true;
-			if(testX == lastlastX && testY == lastlastY)
-				occupied = true;
-		}
-
-		if(!occupied)
-		{
-			guy.path.push(new Phaser.Point(testX, testY));
-			lastX = testX;
-			lastY = testY;
-
-			//console.log('push: ' + testX + ', ' + testY);
-			lastlastX = guy.path[guy.path.length - 2].x;
-			lastlastY = guy.path[guy.path.length - 2].y;
-		}
-		else
-			break;
-	}
-
-	//console.log(guy.path);
-}
-
-function checkWall(wall, occupied, testX, testY)
-{
-	if(Phaser.Rectangle.contains(wall.getBounds(), testX, testY))
-		occupied.value = true;
-}
-
+/*
+	moveAlongPath
+	Moves the gunguy along his little path, changing the middleDeg to the 
+	direction it is travelling in
+*/
 function moveAlongPath(guy)
 {
 	//If moving right his direction is 0
@@ -281,6 +178,11 @@ function moveAlongPath(guy)
 		moveToXY(guy, guy.path[guy.pathIndex].x, guy.path[guy.pathIndex].y, 15);
 }
 
+/*
+	moveToXY
+	A modified move to XY function that forces the object to only move in 4 directions
+	Useful for when moving along a path
+*/
 function moveToXY(guy, x, y, speed)
 {
 	if(x - guy.x < 2 && x - guy.x > -2)
