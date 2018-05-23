@@ -1,15 +1,15 @@
 function GunGuy(x, y, game)
 {
-	Enemy.call(this, x, y, game, 'gunGuy');
+	Enemy.call(this, x + 16, y + 16, game, 'gunGuy');
 
 	this.scale.set(0.75);
 
-	this.lineDist = 225;
+	this.lineDist = 600;
 
 	this.bulletCounter = 5;
 	this.shotSound = game.add.audio('shot');
 
-	//generatePath(this, game, terrainLayer);
+	//generatePath(this, game, bigRoom.walls);
 }
 
 GunGuy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -31,7 +31,7 @@ GunGuy.prototype.update = function ()
 		//Convert playerline angle to degrees from radians and normalize to 0-360 instead of 0-180 and 0-(-180)
 		this.playerAng = normRad(this.playerLine.angle);
 
-		var intersects = getClosestPoint(this.playerLine, terrainLayer, 3);
+		var intersects = getClosestPoint(this.playerLine, bigRoom.walls, 3);
 
 		this.playerBehind = (intersects !== null);
 
@@ -65,13 +65,13 @@ GunGuy.prototype.update = function ()
 		this.lessLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.lessDeg), this.lineDist);
 		this.moreLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.moreDeg), this.lineDist);
 
-		var point = getClosestPoint(this.lessLine, terrainLayer, 5);
+		var point = getClosestPoint(this.lessLine, bigRoom.walls, 5);
 		if(point != null)
 		{
 			this.lessLine = new Phaser.Line(this.x, this.y, point.x, point.y);
 		}
 
-		point = getClosestPoint(this.moreLine, terrainLayer, 5);
+		point = getClosestPoint(this.moreLine, bigRoom.walls, 5);
 		if(point != null)
 		{
 			this.moreLine = new Phaser.Line(this.x, this.y, point.x, point.y);

@@ -14,8 +14,8 @@ Bullet.prototype.constructor = Bullet;
 
 Bullet.prototype.update = function()
 {
-	//var hitWall = game.physics.arcade.collide(this, terrainLayer);
-	var intersects = terrainLayer.getTiles(this.x, this.y, 4, 4, true);
+	//var hitWall = game.physics.arcade.collide(this, bigRoom.walls);
+	var intersects = bigRoom.walls.getTiles(this.x, this.y, 4, 4, true);
 	var hitEnemy = game.physics.arcade.overlap(this, enemies, destroyEnemy, null, this);
 
 	if( intersects.length > 0 || hitEnemy ||

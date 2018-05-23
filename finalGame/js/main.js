@@ -30,8 +30,13 @@ Final.Boot.prototype =
 		this.load.image('X', 'X.png');
 		this.load.audio('music', '../audio/music.mp3');
 		this.load.audio('shot', '../audio/shot.wav');
-		this.load.tilemap('level', '../tiles/Online/online1.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.spritesheet('datGoodSheet', '../tiles/Online/Itch_32.png', 32, 32);
+
+		this.load.path = './assets/tiles/';
+		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.spritesheet('datGoodSheet', 'Itch_32.png', 32, 32);
 	},
 	create: function()
 	{
@@ -55,7 +60,8 @@ Final.Boot.prototype =
 Final.Play = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
-	var gunGuy, enemies, map, terrainLayer, decorationLayer, enemyBullets;
+	var gunGuy, enemies, map, enemyBullets;
+	var bigRoom;
 };
 Final.Play.prototype =
 {
@@ -67,29 +73,54 @@ Final.Play.prototype =
 	{
 		console.log('Play: create');
 		game.physics.startSystem(Phaser.Physics.ARCADE);
-		this.world.setBounds(0, 0, 1586, 1088);
-		this.add.image(0, 0, 'back');
+		//this.world.setBounds(0, 0, 1586, 1088);
+		//this.add.image(0, 0, 'back');
 		// Create a bitmap texture for drawing lines
-    	this.bitmap = this.game.add.bitmapData(this.world.width, this.world.height);
+    	/*this.bitmap = this.game.add.bitmapData(this.world.width, this.world.height);
     	this.bitmap.context.fillStyle = 'rgb(255, 255, 255)';
     	this.bitmap.context.strokeStyle = 'rgb(255, 255, 255)';
-   	 	this.game.add.image(0, 0, this.bitmap);
+   	 	this.game.add.image(0, 0, this.bitmap);*/
 
 		walls = game.add.group();
 		walls.enableBody = true;
 
-   	 	map = game.add.tilemap('level');
+   	 	/*map = game.add.tilemap('level');
    	 	map.addTilesetImage('onlineSet', 'datGoodSheet', 32, 32);
    	 	map.setCollisionByExclusion([]);
 
-   	 	decorationLayer = map.createLayer('Background');
-   	 	terrainLayer = map.createLayer('Walls');
+   	 	bigRoom.background = map.createLayer('Background');
+   	 	bigRoom.walls = map.createLayer('Walls');
 
-   	 	map.setCollisionByExclusion([], true, terrainLayer);
+   	 	map.setCollisionByExclusion([], true, bigRoom.walls);
    	 	
-   	 	terrainLayer.resizeWorld();
-   	 	//terrainLayer.debug = true;
+   	 	bigRoom.walls.resizeWorld();
+   	 	//bigRoom.walls.debug = true;*/
 
+   	 	bigRoom = game.add.tilemap('bigRoom');
+		bigRoom.addTilesetImage('Itch_32', 'datGoodSheet', 32, 32);
+		bigRoom.background = bigRoom.createLayer('Background');
+		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.walls.resizeWorld();
+
+		var mapArr = ['room1', 'room2', 'room3', 'room1', 'room2', 'room3'];
+		var name = Phaser.ArrayUtils.removeRandomItem(mapArr);
+
+		var graph = [	[0, 0, 0, 0, 0], 
+						[0, 0, 1, 0, 0],
+						[0, 1, name, 1, 0],
+						[0, 0, 1, 0, 0],
+						[0, 0, 0, 0, 0] ];
+
+		generate(mapArr, graph);
+
+		enemies = game.add.group();
+		enemyBullets = game.add.group();
+		renderRooms(graph, bigRoom);
+		
+		bigRoom.setCollisionByExclusion([], true, 'Walls');
+		//bigRoom.walls.debug = true;
+
+		enemies.forEach(generatePath, this, true, game, bigRoom.walls)
 		player = new Player(game, 'player');
 		game.add.existing(player);
 		
@@ -101,18 +132,6 @@ Final.Play.prototype =
 		game.camera.follow(sCam, null, .1, .1);
 		this.physics.arcade.enable(sCam);
 
-		enemies = game.add.group();
-		enemyBullets = game.add.group();
-		var enArr = [ 	[16,18], [24,20], [35,4], [31,9], [36,34], 
-						[32,30], [17,37], [12,36], [6,20], [3,13], [3,21]];
-
-		for(var i = 0; i < enArr.length; i++)
-		{
-			gunGuy = new GunGuy(enArr[i][0]*32 - 16, enArr[i][1]*32 - 16, game);
-			game.add.existing(gunGuy);
-			enemies.add(gunGuy);
-		}
-
 
 		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
@@ -120,14 +139,14 @@ Final.Play.prototype =
 	update: function()
 	{
 		game.physics.arcade.collide(player, walls);
-		game.physics.arcade.collide(player, terrainLayer);
-		game.physics.arcade.collide(enemies, terrainLayer);
+		game.physics.arcade.collide(player, bigRoom.walls);
+		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.collide(player, enemyBullets, deadFun, null, this);
 		mouseX = game.input.worldX;
 		mouseY = game.input.worldY;	
 		var tX = ((mouseX - player.x) / 6) + player.x;
 		var tY = ((mouseY - player.y) / 6) + player.y;
-		this.bitmap.context.clearRect(0, 0, this.world.width, this.world.height);
+		//this.bitmap.context.clearRect(0, 0, this.world.width, this.world.height);
 
 		//drawLines(gunGuy, this.bitmap);
 		enemies.forEach(drawLines, this, true, this.bitmap);
@@ -190,8 +209,8 @@ function drawLines(gunGuy, bitmap)
 	//gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
 	if(gunGuy.inCamera)
 	{
-		gunGuy.graphics.lineStyle(2, 0x2779B6, .5);	
-		gunGuy.graphics.arc(gunGuy.x, gunGuy.y, gunGuy.lineDist, 0, Phaser.Math.degToRad(360), false, 60);
+		//gunGuy.graphics.lineStyle(2, 0x2779B6, .5);	
+		//gunGuy.graphics.arc(gunGuy.x, gunGuy.y, gunGuy.lineDist, 0, Phaser.Math.degToRad(360), false, 60);
 	}
 }
 

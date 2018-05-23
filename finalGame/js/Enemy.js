@@ -57,7 +57,7 @@ function Enemy(x, y, game, key)
 	this.discovered = false;
 
 	//generates the path
-	generatePath(this, game, terrainLayer);
+	//generatePath(this, game, bigRoom.walls);
 }
 
 Enemy.prototype = Object.create(Phaser.Sprite.prototype);

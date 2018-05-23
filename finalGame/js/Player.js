@@ -1,7 +1,7 @@
 function Player(game, key)
 {
 	// call to Phaser.Sprite // new Sprite(game, x, y, key, frame)
-	Phaser.Sprite.call(this, game, 16*32 - 16, 24*32 - 16, 'atlas', key);
+	Phaser.Sprite.call(this, game, game.world.width/2 , game.world.height/2 + 64, 'atlas', key);
 
 	this.anchor.set(0.5);
 
