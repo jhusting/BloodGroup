@@ -56,6 +56,8 @@ function Enemy(x, y, game, key)
 	//whether or not the enemy has been on screen at least once
 	this.discovered = false;
 
+	this.dead = false;
+
 	//generates the path
 	//generatePath(this, game, bigRoom.walls);
 }

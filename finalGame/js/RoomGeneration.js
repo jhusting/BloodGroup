@@ -106,7 +106,7 @@ function renderRooms(graph, map)
 
 				var arr = layer.getTiles(0, 0, 16*32, 14*32, true);
 
-				for(var n = 0; n < 2; n++)
+				for(var n = 0; arr.length > 0 && n < 2; n++)
 				{
 					var tile = Phaser.ArrayUtils.removeRandomItem(arr);
 					console.log('worldX: ' + worldX + '\ntilex: ' + tile.x);

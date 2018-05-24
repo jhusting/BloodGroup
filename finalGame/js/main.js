@@ -33,6 +33,7 @@ Final.Boot.prototype =
 
 		this.load.path = './assets/tiles/';
 		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
@@ -73,28 +74,9 @@ Final.Play.prototype =
 	{
 		console.log('Play: create');
 		game.physics.startSystem(Phaser.Physics.ARCADE);
-		//this.world.setBounds(0, 0, 1586, 1088);
-		//this.add.image(0, 0, 'back');
-		// Create a bitmap texture for drawing lines
-    	/*this.bitmap = this.game.add.bitmapData(this.world.width, this.world.height);
-    	this.bitmap.context.fillStyle = 'rgb(255, 255, 255)';
-    	this.bitmap.context.strokeStyle = 'rgb(255, 255, 255)';
-   	 	this.game.add.image(0, 0, this.bitmap);*/
 
 		walls = game.add.group();
 		walls.enableBody = true;
-
-   	 	/*map = game.add.tilemap('level');
-   	 	map.addTilesetImage('onlineSet', 'datGoodSheet', 32, 32);
-   	 	map.setCollisionByExclusion([]);
-
-   	 	bigRoom.background = map.createLayer('Background');
-   	 	bigRoom.walls = map.createLayer('Walls');
-
-   	 	map.setCollisionByExclusion([], true, bigRoom.walls);
-   	 	
-   	 	bigRoom.walls.resizeWorld();
-   	 	//bigRoom.walls.debug = true;*/
 
    	 	bigRoom = game.add.tilemap('bigRoom');
 		bigRoom.addTilesetImage('Itch_32', 'datGoodSheet', 32, 32);
@@ -103,7 +85,7 @@ Final.Play.prototype =
 		bigRoom.walls.resizeWorld();
 
 		var mapArr = ['room1', 'room2', 'room3', 'room1', 'room2', 'room3'];
-		var name = Phaser.ArrayUtils.removeRandomItem(mapArr);
+		var name = 'startRoom';
 
 		var graph = [	[0, 0, 0, 0, 0], 
 						[0, 0, 1, 0, 0],
@@ -138,17 +120,16 @@ Final.Play.prototype =
 	},
 	update: function()
 	{
-		game.physics.arcade.collide(player, walls);
+		//game.physics.arcade.collide(player, walls);
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
-		game.physics.arcade.collide(player, enemyBullets, deadFun, null, this);
+		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
 		mouseX = game.input.worldX;
 		mouseY = game.input.worldY;	
 		var tX = ((mouseX - player.x) / 6) + player.x;
 		var tY = ((mouseY - player.y) / 6) + player.y;
-		//this.bitmap.context.clearRect(0, 0, this.world.width, this.world.height);
 
-		//drawLines(gunGuy, this.bitmap);
+
 		enemies.forEach(drawLines, this, true, this.bitmap);
 
 		if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
@@ -193,7 +174,13 @@ Final.Dead.prototype =
 function deadFun(player, bullet)
 {
 	bullet.destroy();
-	game.state.start('Dead');
+
+	if(!player.dead)
+	{
+		player.dying();
+	}
+
+	player.dead = true;
 }
 function drawLines(gunGuy, bitmap)
 {
@@ -216,7 +203,7 @@ function drawLines(gunGuy, bitmap)
 
 
 // init game
-var game = new Phaser.Game(512, 512, Phaser.AUTO);
+var game = new Phaser.Game(700, 700, Phaser.AUTO);
 // add states
 game.state.add('Boot', Final.Boot);
 game.state.add('Play', Final.Play);
