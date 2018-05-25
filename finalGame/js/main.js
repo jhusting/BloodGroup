@@ -25,6 +25,7 @@ Final.Boot.prototype =
 		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
 		this.load.image('back', 'back.png');
 		this.load.image('pBlood', 'pBlood.png');
+		this.load.image('start', 'start.png');
 		//this.load.image('smallBullet', 'smallBullet.png');
 		this.load.image('BGTile', 'BGTile.png');
 		this.load.image('X', 'X.png');
@@ -41,6 +42,7 @@ Final.Boot.prototype =
 	},
 	create: function()
 	{
+		this.game.canvas.style.cursor = "crosshair";
 		var startMusic = this.add.audio('music');
 		//startMusic.play('', 0, .25, true);
 		this.add.text(25, 180, 'WASD to Move.\nLeft Click to shoot.' +
@@ -57,12 +59,57 @@ Final.Boot.prototype =
 	}
 };
 
+Final.MainMenu = function(){ var button; };
+
+Final.MainMenu.prototype = 
+{
+	init: function() 
+	{
+		console.log('Boot: init');
+	},
+	
+	preload: function() 
+	{
+		console.log('Boot: preload');
+		this.load.path = './assets/img/'; //set initial load path
+		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
+		this.load.image('back', 'back.png');
+		this.load.image('pBlood', 'pBlood.png');
+		this.load.image('start', 'start.png');
+		//this.load.image('smallBullet', 'smallBullet.png');
+		this.load.image('BGTile', 'BGTile.png');
+		this.load.image('X', 'X.png');
+		this.load.audio('music', '../audio/music.mp3');
+		this.load.audio('shot', '../audio/shot.wav');
+
+		this.load.path = './assets/tiles/';
+		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.spritesheet('datGoodSheet', 'Itch_32.png', 32, 32);
+	},
+	create: function()
+	{
+		console.log('Boot: create');
+		this.game.canvas.style.cursor = "crosshair";
+		var startMusic = this.add.audio('music');
+		//startMusic.play('', 0, .25, true);
+		button = game.add.button(game, game.world.centerX - 130, game.world.centerY - 50,
+									'start', function() {game.state.start('Play');}, this);
+	}, 
+	update: function()
+	{
+	}
+}
+
 
 Final.Play = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
 	var gunGuy, enemies, map, enemyBullets;
-	var bigRoom;
+	var bigRoom, bloods;
 };
 Final.Play.prototype =
 {
@@ -73,6 +120,7 @@ Final.Play.prototype =
 	create: function()
 	{
 		console.log('Play: create');
+		this.game.canvas.style.cursor = "crosshair";
 		game.physics.startSystem(Phaser.Physics.ARCADE);
 
 		walls = game.add.group();
@@ -103,6 +151,7 @@ Final.Play.prototype =
 		//bigRoom.walls.debug = true;
 
 		enemies.forEach(generatePath, this, true, game, bigRoom.walls)
+		bloods = game.add.group();
 		player = new Player(game, 'player');
 		game.add.existing(player);
 		
@@ -124,6 +173,13 @@ Final.Play.prototype =
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
+		var onBlood = game.physics.arcade.overlap(player, bloods);
+		if(onBlood && !player.onBlood)
+			player.onBlood = true;
+		else if(!onBlood)
+			player.onBlood = false;
+
+
 		mouseX = game.input.worldX;
 		mouseY = game.input.worldY;	
 		var tX = ((mouseX - player.x) / 6) + player.x;
@@ -171,6 +227,12 @@ Final.Dead.prototype =
 	}
 };
 
+/*function onBlood(player, blood)
+{
+	//console.log("on blood");
+	player.eating = true;
+}*/
+
 function deadFun(player, bullet)
 {
 	bullet.destroy();
@@ -206,6 +268,7 @@ function drawLines(gunGuy, bitmap)
 var game = new Phaser.Game(700, 700, Phaser.AUTO);
 // add states
 game.state.add('Boot', Final.Boot);
+game.state.add('MainMenu', Final.MainMenu);
 game.state.add('Play', Final.Play);
 game.state.add('Dead', Final.Dead);
 game.state.start('Boot');

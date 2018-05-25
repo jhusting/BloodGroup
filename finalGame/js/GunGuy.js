@@ -139,12 +139,12 @@ function seenFunction(guy)
 
 	if(guy.bulletCounter > 4)
 	{
-		guy.shotSound.play('', 0, .1, false);
+		guy.shotSound.play('', 0, .05, false);
 		var bull = game.add.sprite(guy.x - 8 + Math.random()*16,
 								   guy.y - 8 + Math.random()*16, 'atlas', 'smallBullet');
 		enemyBullets.add(bull);
 		game.physics.arcade.enable(bull);
-		game.physics.arcade.moveToXY(bull, player.x, player.y, 700);
+		game.physics.arcade.moveToXY(bull, player.x, player.y, 500);
 		guy.bulletCounter = -1;
 	}
 	guy.bulletCounter++;

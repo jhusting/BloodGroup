@@ -7,10 +7,10 @@ function Player(game, key)
 
 	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
 	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('pl_LeftIdle', 1, 2, '', 2), 3, true);
-	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('pl_RightRun', 1, 7, '', 2), 18, true);
-	this.animations.add('rightRun_Hurt', Phaser.Animation.generateFrameNames('pl_RightRun', 1, 7, '', 2), 10, true);
-	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('pl_LeftRun', 1, 7, '', 2), 18, true);
-	this.animations.add('leftRun_Hurt', Phaser.Animation.generateFrameNames('pl_LeftRun', 1, 7, '', 2), 10, true);
+	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('pl_RightRun', 2, 12, '', 2), 22, true);
+	this.animations.add('rightRun_Hurt', Phaser.Animation.generateFrameNames('pl_RightRun', 2, 12, '', 2), 10, true);
+	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('pl_LeftRun', 2, 12, '', 2), 22, true);
+	this.animations.add('leftRun_Hurt', Phaser.Animation.generateFrameNames('pl_LeftRun', 2, 12, '', 2), 10, true);
 	this.animations.play('rightIdle');
 
 	game.physics.arcade.enable(this);
@@ -19,7 +19,7 @@ function Player(game, key)
 	this.body.drag.x = 1200;
 	this.body.drag.y = 1200;
 
-	this.speed = 250;
+	this.speed = 200;
 	this.diagRatio = 1.35;
 	this.wasDown = false;
 	this.fire = false;
@@ -33,10 +33,24 @@ function Player(game, key)
 	this.starveBar.fixedToCamera = true;
 	this.starveBar.cameraOffset = new Phaser.Point(100, 650);
 
+	this.emitter = game.add.emitter(this.x, this.y, 3);
+	this.emitterCounter = 0;
+	this.emitter.minParticleAlpha = .65;
+	this.emitter.maxParticleAlpha = .65;
+	this.emitter.lifespan = 125;
+	this.emitter.explode = false;
+	this.emitter.quantity = 4;
+	this.emitter.visible = true;
+	this.emitter.minRotation = 0;
+	this.emitter.maxRotation = 0;
+	this.emitter.gravity = 0;
+	//this.emitter.start(false, 1);
+
 	this.dead = false;
 	this.melee = false;
 	this.gaunt = false;
 	this.eating = false;
+	this.onBlood = false;
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -47,12 +61,30 @@ Player.prototype.update = function()
 	this.bringToTop();
 	if(this.canFire < 5)
 		this.canFire++;
+
+	if(this.gaunt && this.onBlood)
+	{
+		this.speed = 125;
+		this.emit();
+	}
+	else if(this.gaunt)
+		this.speed = 70;
+	else if(this.onBlood)
+	{
+		this.speed = 300;
+		this.emit();
+	}
+	else
+		this.speed = 200;
+
 	if(this.gaunt)
 	{
-		if(!this.eating)
-			this.starveScale -= .25;
-		else if(this.starveScale < 125)
-			this.starveScale += .5;
+		if(this.eating && this.starveScale < 125)
+			this.starveScale += .3;
+		else if(this.onBlood)
+			this.starveScale -= .1;
+		else if(!this.eating)
+			this.starveScale -= .4;
 
 		this.starveBar.alpha = 1;
 		if(this.starveScale <= 0)
@@ -142,11 +174,37 @@ Player.prototype.update = function()
 	}
 }
 
+Player.prototype.emit = function()
+{
+	if(this.emitterCounter > 7)
+	{
+		this.emitter.x = this.x;
+		this.emitter.y = this.y;
+		if(this.gaunt)
+		{
+			this.emitter.maxParticleSpeed.setTo(-this.body.velocity.x/1.5, -this.body.velocity.y/1.5);
+			this.emitter.minParticleSpeed.setTo(-this.body.velocity.x/1.5, -this.body.velocity.y/1.5);
+		}
+		else
+		{
+			this.emitter.maxParticleSpeed.setTo(-this.body.velocity.x/3.25, -this.body.velocity.y/3.25);
+			this.emitter.minParticleSpeed.setTo(-this.body.velocity.x/3.25, -this.body.velocity.y/3.25);
+		}
+
+		this.emitter.makeParticles('atlas', this.frame);
+		var emitted = this.emitter.emitParticle(this.x, this.y, 'atlas', this.frame);
+		console.log(emitted);
+		this.emitterCounter = 0;
+	}
+	else
+		this.emitterCounter++;
+}
+
 Player.prototype.dying = function()
 {
 	var timer = game.time.create(true);
 	game.deadText = game.add.text(player.x - 150, player.y - 160, 
-			'You died.\nPress Space to Restart!', 
+			'You died.', 
 			{font: 'Charter', fontSize: '36px', fill: '#ffffff', backgroundColor: '0'});
 	//text.alpha = 0;
 
@@ -163,6 +221,5 @@ function fire(player)
 	game.add.existing(bullet);
 
 	player.gaunt = true;
-	player.speed = 75;
 }
 

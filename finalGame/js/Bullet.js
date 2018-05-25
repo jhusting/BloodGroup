@@ -27,11 +27,13 @@ Bullet.prototype.update = function()
 
 	for(var i = 0; i < 4; i++)
 	{
-		var part = game.add.image(	this.x - 16+ Math.random()*16, 
+		var part = game.add.sprite(	this.x - 16+ Math.random()*16, 
 									this.y - 16 + Math.random()*16, 'pBlood');
 		part.scale.set(4, 4);
 		part.outOfBoundsKill = true;
 		part.lifespan = 10000;
+		game.physics.arcade.enable(part);
+		bloods.add(part);
 	}
 }
 
