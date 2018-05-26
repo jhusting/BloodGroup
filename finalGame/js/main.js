@@ -25,7 +25,6 @@ Final.Boot.prototype =
 		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
 		this.load.image('back', 'back.png');
 		this.load.image('pBlood', 'pBlood.png');
-		this.load.image('start', 'start.png');
 		//this.load.image('smallBullet', 'smallBullet.png');
 		this.load.image('BGTile', 'BGTile.png');
 		this.load.image('X', 'X.png');
@@ -42,20 +41,10 @@ Final.Boot.prototype =
 	},
 	create: function()
 	{
-		this.game.canvas.style.cursor = "crosshair";
-		var startMusic = this.add.audio('music');
-		//startMusic.play('', 0, .25, true);
-		this.add.text(25, 180, 'WASD to Move.\nLeft Click to shoot.' +
-							'\nE to feed on a corpse and regain ammo.' + 
-							'\nSpace to start!', {fontSize: '24px', fill: '#ffffff'});
-		cursors = game.input.keyboard.createCursorKeys();
 	}, 
 	update: function()
 	{
-		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
-		{
-			game.state.start('Play');
-		}
+		game.state.start('MainMenu');
 	}
 };
 
@@ -71,24 +60,6 @@ Final.MainMenu.prototype =
 	preload: function() 
 	{
 		console.log('Boot: preload');
-		this.load.path = './assets/img/'; //set initial load path
-		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
-		this.load.image('back', 'back.png');
-		this.load.image('pBlood', 'pBlood.png');
-		this.load.image('start', 'start.png');
-		//this.load.image('smallBullet', 'smallBullet.png');
-		this.load.image('BGTile', 'BGTile.png');
-		this.load.image('X', 'X.png');
-		this.load.audio('music', '../audio/music.mp3');
-		this.load.audio('shot', '../audio/shot.wav');
-
-		this.load.path = './assets/tiles/';
-		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.spritesheet('datGoodSheet', 'Itch_32.png', 32, 32);
 	},
 	create: function()
 	{
@@ -96,8 +67,13 @@ Final.MainMenu.prototype =
 		this.game.canvas.style.cursor = "crosshair";
 		var startMusic = this.add.audio('music');
 		//startMusic.play('', 0, .25, true);
-		button = game.add.button(game, game.world.centerX - 130, game.world.centerY - 50,
-									'start', function() {game.state.start('Play');}, this);
+		button = game.add.button(game.world.centerX - 55, game.world.centerY - 9,
+									'atlas', startGame, this, 'startHover', 'start', 'startHover');
+
+		var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
+		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
+		dude.animations.play('rightIdle');
+		dude.anchor.set(.5);
 	}, 
 	update: function()
 	{
@@ -170,6 +146,7 @@ Final.Play.prototype =
 	update: function()
 	{
 		//game.physics.arcade.collide(player, walls);
+		this.game.canvas.style.cursor = "crosshair";
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
@@ -227,12 +204,6 @@ Final.Dead.prototype =
 	}
 };
 
-/*function onBlood(player, blood)
-{
-	//console.log("on blood");
-	player.eating = true;
-}*/
-
 function deadFun(player, bullet)
 {
 	bullet.destroy();
@@ -262,7 +233,10 @@ function drawLines(gunGuy, bitmap)
 		//gunGuy.graphics.arc(gunGuy.x, gunGuy.y, gunGuy.lineDist, 0, Phaser.Math.degToRad(360), false, 60);
 	}
 }
-
+function startGame()
+{
+	game.state.start('Play');
+}
 
 // init game
 var game = new Phaser.Game(700, 700, Phaser.AUTO);

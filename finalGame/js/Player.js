@@ -192,8 +192,7 @@ Player.prototype.emit = function()
 		}
 
 		this.emitter.makeParticles('atlas', this.frame);
-		var emitted = this.emitter.emitParticle(this.x, this.y, 'atlas', this.frame);
-		console.log(emitted);
+		this.emitter.emitParticle(this.x, this.y, 'atlas', this.frame);
 		this.emitterCounter = 0;
 	}
 	else

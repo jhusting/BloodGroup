@@ -109,7 +109,6 @@ function renderRooms(graph, map)
 				for(var n = 0; arr.length > 0 && n < 2; n++)
 				{
 					var tile = Phaser.ArrayUtils.removeRandomItem(arr);
-					console.log('worldX: ' + worldX + '\ntilex: ' + tile.x);
 					var guy = new GunGuy((worldX)*32 + tile.worldX, (worldY)*32 + tile.worldY, game);
 					game.add.existing(guy);
 					enemies.add(guy);

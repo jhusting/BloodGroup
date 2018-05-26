@@ -9,6 +9,8 @@ function GunGuy(x, y, game)
 	this.bulletCounter = 5;
 	this.shotSound = game.add.audio('shot');
 
+	this.seenFrames = 0;
+
 	//generatePath(this, game, bigRoom.walls);
 }
 
@@ -49,10 +51,24 @@ GunGuy.prototype.update = function ()
 				game.physics.arcade.moveToXY(this, this.seenX, this.seenY, 60);
 			else
 			{
+				this.seenFrames++;
+
 				this.x = this.seenX;
 				this.y = this.seenY;
 				this.body.velocity.x = 0;
 				this.body.velocity.y = 0;
+
+				if(this.seenFrames === 180)
+				{
+					this.seenFrames = 0;
+					//this.seen.destroy();
+					//this.seen = null;
+
+					this.seenX = null;
+					this.seenY = null;
+
+					generatePath(this, game, bigRoom.walls);
+				}
 			}
 		}
 
@@ -88,7 +104,12 @@ GunGuy.prototype.update = function ()
 				this.seen.destroy();
 				this.seen = null;
 			}
-		}	
+		}
+		else if(this.seen !== null)
+		{
+			this.seen.destroy();
+			this.seen = null;
+		}
 
 		if(Phaser.Math.difference(this.currMidDeg, this.middleDeg) < 5 || 
 			Phaser.Math.difference(this.currMidDeg, this.middleDeg + 360) < 5)
@@ -102,12 +123,12 @@ GunGuy.prototype.update = function ()
 		{
 			this.X.alpha = 1;
 
-			if(!this.dead && game.input.keyboard.isDown(Phaser.Keyboard.Q))
+			if(!this.dead && game.input.keyboard.isDown(Phaser.Keyboard.F))
 			{
 				var timer = game.time.create(true);			
 
-				timer.add(300, function() {
-					timer.start();
+				timer.add(100, function() {
+					//timer.start();
 					var corpse = new Corpse(game, 1, 0, this.x, this.y);
 					game.add.existing(corpse);
 					this.graphics.destroy();

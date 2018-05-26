@@ -39,7 +39,7 @@ function Enemy(x, y, game, key)
 	this.seenY = null;
 
 	//this will be a sprite object that indicates whether or not you can melee attack the enemy
-	this.X = game.add.sprite(this.x, this.y, 'X');
+	this.X = game.add.sprite(this.x, this.y, 'atlas', 'X');
 	this.X.anchor.set(0.5);
 	this.X.alpha = 0;
 
@@ -167,6 +167,8 @@ function generatePath(guy, game, layer)
 	var randomArr;
 	var numPoints = 3 + Math.random()*2;
 	var grid = 64;
+	guy.path = [];
+	guy.path.push(new Phaser.Point(guy.x, guy.y));
 	//console.log('numPoints: ' + numPoints);
 
 	for(var i = 0; i < numPoints; i++)
