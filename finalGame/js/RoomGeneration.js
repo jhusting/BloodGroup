@@ -50,7 +50,7 @@ function renderRooms(graph, map)
 			if(graph[i][k] !== 1 &&  graph[i][k] !== 0)
 			{
 				var room = game.add.tilemap(graph[i][k]);
-				room.addTilesetImage('Itch_32', 'datGoodSheet', 32, 32);
+				room.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
 				var worldX = 2 + k*16 - k;
 				var worldY = 4 + i*14 - i*2;
 
@@ -65,6 +65,13 @@ function renderRooms(graph, map)
 
 				data = room.copy(0, 0, 16, 15, layer);
 				map.paste(worldX, worldY, data, map.walls);
+
+				layer  = room.createLayer('Shadows');
+				layer.alpha = 0;
+
+				data = room.copy(0, 0, 16, 15, layer);
+				map.paste(worldX, worldY, data, map.shadows);
+
 
 				if(i + 1 >= graph.length || graph[i+1][k] === 1)
 				{
@@ -89,6 +96,12 @@ function renderRooms(graph, map)
 
 					data = room.copy(7, 0, 2, 2, layer);
 					map.paste(worldX + 7, worldY, data, map.walls);
+
+					layer = room.createLayer('UpShadows');
+					layer.alpha = 0;
+
+					data = room.copy(7, 0, 2, 3, layer);
+					map.paste(worldX + 7, worldY, data, map.shadows);
 				}
 				if(k - 1 < 0 || graph[i][k-1] === 1)
 				{
@@ -97,6 +110,12 @@ function renderRooms(graph, map)
 
 					data = room.copy(0, 4, 1, 4, layer);
 					map.paste(worldX, worldY + 4, data, map.walls);
+
+					layer = room.createLayer('LeftShadows');
+					layer.alpha = 0;
+
+					data = room.copy(0, 4, 2, 4, layer);
+					map.paste(worldX, worldY + 4, data, map.shadows);
 				}
 
 				layer = room.createLayer('Enemy');

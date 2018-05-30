@@ -25,6 +25,7 @@ function Player(game, key)
 	this.fire = false;
 	this.z = 100;
 	this.canFire = 0;
+	this.shotSound = game.add.audio('playerShot');
 
 	this.starveBar = game.add.image(0, 0, 'pBlood');
 	this.starveScale = 125;
@@ -203,8 +204,7 @@ Player.prototype.dying = function()
 {
 	var timer = game.time.create(true);
 	game.deadText = game.add.text(player.x - 150, player.y - 160, 
-			'You died.', 
-			{font: 'Charter', fontSize: '36px', fill: '#ffffff', backgroundColor: '0'});
+			'You died.', textStyle);
 	//text.alpha = 0;
 
 	timer.add(2000, function() {
@@ -218,6 +218,8 @@ function fire(player)
 {
 	var bullet = new Bullet(player.x, player.y, game.input.worldX, game.input.worldY, game);
 	game.add.existing(bullet);
+
+	player.shotSound.play('', 0, .25, false);
 
 	player.gaunt = true;
 }

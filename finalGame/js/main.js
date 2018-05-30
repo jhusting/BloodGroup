@@ -1,13 +1,25 @@
 //Final Proto by Josh Husting
 //CMPM 120
 //
-//Music: "awesome background melody music" by deleted_user_6988258
-//https://freesound.org/people/deleted_user_6988258/sounds/399821/
-//Gunshot Sound: "Gun Shot.wav" by Bird_man
+//Music: "Electro Zombies" by Purple Planet Music
+//http://www.purple-planet.com/dark-backgrounds/4584537439
+//Machine gun Gunshot Sound: "Gun Shot.wav" by Bird_man
 //https://freesound.org/people/Bird_man/sounds/275151/
+//Player lazer sound: "Laser shot silenced" by buboproducer
+//https://freesound.org/people/bubaproducer/sounds/151022/
+//Turret lazer sound: "laser" by fins
+//https://freesound.org/people/fins/sounds/191594/
 
 // define global game container object
 var Final = { };
+
+let textStyle = {
+	font: 'ProggyTinyTTSZ',
+	fontSize: 36,
+	fill: '#ffffff',
+	wordWrap: true,
+	wordWrapWidth: 700
+};
 
 //new boot goofin
 Final.Boot = function() { var cursors, wasDown; };
@@ -25,22 +37,23 @@ Final.Boot.prototype =
 		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
 		this.load.image('back', 'back.png');
 		this.load.image('pBlood', 'pBlood.png');
-		//this.load.image('smallBullet', 'smallBullet.png');
 		this.load.image('BGTile', 'BGTile.png');
-		this.load.image('X', 'X.png');
-		this.load.audio('music', '../audio/music.mp3');
+		this.load.audio('music', '../audio/Electro_Zombies.mp3');
 		this.load.audio('shot', '../audio/shot.wav');
+		this.load.audio('playerShot', '../audio/playerShot.wav');
+		this.load.audio('turretShot', '../audio/turretShot.wav');
 
-		this.load.path = './assets/tiles/';
+		this.load.path = './assets/tiles/Athene/';
 		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
-		this.load.spritesheet('datGoodSheet', 'Itch_32.png', 32, 32);
+		this.load.spritesheet('datGoodSheet', 'tileset.png', 32, 32);
 	},
 	create: function()
 	{
+		//this.time.desiredFps = 30;
 	}, 
 	update: function()
 	{
@@ -66,9 +79,11 @@ Final.MainMenu.prototype =
 		console.log('Boot: create');
 		this.game.canvas.style.cursor = "crosshair";
 		var startMusic = this.add.audio('music');
-		//startMusic.play('', 0, .25, true);
+		startMusic.play('', 0, .25, true);
 		button = game.add.button(game.world.centerX - 55, game.world.centerY - 9,
 									'atlas', startGame, this, 'startHover', 'start', 'startHover');
+		var button2 = game.add.button(game.world.centerX - 55, game.world.centerY - 9 + 18,
+									'atlas', startTutorial, this, 'controlsHover', 'controls', 'controlsHover');
 
 		var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
 		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
@@ -80,6 +95,33 @@ Final.MainMenu.prototype =
 	}
 }
 
+Final.Tutorial = function() { var video; };
+Final.Tutorial.prototype = 
+{
+	init: function() 
+	{
+		console.log('Tutorial: init');
+	},
+	
+	preload: function()
+	{
+		console.log('Tutorial: preload');
+	},
+	create: function()
+	{
+		console.log('Tutorial: create');
+		video = game.add.video('eat');
+		video.play(true);
+		video.addToWorld(0, 0);
+
+		video = game.add.video('melee');
+		video.play(true);
+		video.addToWorld(200, 0);
+	}, 
+	update: function()
+	{
+	}
+};
 
 Final.Play = function()
 {
@@ -103,9 +145,10 @@ Final.Play.prototype =
 		walls.enableBody = true;
 
    	 	bigRoom = game.add.tilemap('bigRoom');
-		bigRoom.addTilesetImage('Itch_32', 'datGoodSheet', 32, 32);
+		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
 		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
 		var mapArr = ['room1', 'room2', 'room3', 'room1', 'room2', 'room3'];
@@ -191,7 +234,7 @@ Final.Dead.prototype =
 	create: function()
 	{
 		console.log('Dead: create');
-		this.add.text(25, 180, 'You died.\nPress Space to Restart!', {fontSize: '24px', fill: '#ffffff'});
+		this.add.text(25, 180, 'You died.\nPress Space to Restart!', textStyle);
 		cursors = game.input.keyboard.createCursorKeys();
 	},
 	update: function()
@@ -237,12 +280,17 @@ function startGame()
 {
 	game.state.start('Play');
 }
+function startTutorial()
+{
+	game.state.start('Tutorial');
+}
 
 // init game
 var game = new Phaser.Game(700, 700, Phaser.AUTO);
 // add states
 game.state.add('Boot', Final.Boot);
 game.state.add('MainMenu', Final.MainMenu);
+game.state.add('Tutorial', Final.Tutorial);
 game.state.add('Play', Final.Play);
 game.state.add('Dead', Final.Dead);
 game.state.start('Boot');
