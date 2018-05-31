@@ -131,6 +131,7 @@ GunGuy.prototype.update = function ()
 					//timer.start();
 					var corpse = new Corpse(game, 1, 0, this.x, this.y);
 					game.add.existing(corpse);
+					corpses.add(corpse);
 					this.graphics.destroy();
 					this.X.destroy();
 					this.destroy();

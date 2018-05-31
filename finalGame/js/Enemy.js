@@ -165,8 +165,8 @@ function generatePath(guy, game, layer)
 	var lastX = guy.x, lastY = guy.y;
 	var testX = guy.x, testY = guy.y;
 	var randomArr;
-	var numPoints = 3 + Math.random()*2;
-	var grid = 64;
+	var numPoints = 5 + Math.random()*2;
+	var grid = 32;
 	guy.path = [];
 	guy.path.push(new Phaser.Point(guy.x, guy.y));
 	//console.log('numPoints: ' + numPoints);
@@ -191,7 +191,7 @@ function generatePath(guy, game, layer)
 			else
 				testY -= grid;
 
-			var intersects = layer.getTiles(testX-16, testY-16, 32, 32, true);
+			var intersects = layer.getTiles(testX-16, testY-16, 30, 30, true);
 
 			if(intersects.length > 0)
 				occupied = true;
@@ -213,5 +213,13 @@ function generatePath(guy, game, layer)
 			break;
 	}
 
+	var grph = game.add.graphics();
+	grph.moveTo(guy.path[0].x, guy.path[0].y);
+	grph.lineStyle(2, 0xffffff, 1);
+
+	for(var i = 0; i < guy.path.length; i++)
+	{
+		grph.lineTo(guy.path[i].x, guy.path[i].y);
+	}
 	//console.log(guy.path);
 }

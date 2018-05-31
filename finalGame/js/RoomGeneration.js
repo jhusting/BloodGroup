@@ -114,8 +114,8 @@ function renderRooms(graph, map)
 					layer = room.createLayer('LeftShadows');
 					layer.alpha = 0;
 
-					data = room.copy(0, 4, 2, 4, layer);
-					map.paste(worldX, worldY + 4, data, map.shadows);
+					data = room.copy(0, 6, 2, 2, layer);
+					map.paste(worldX, worldY + 6, data, map.shadows);
 				}
 
 				layer = room.createLayer('Enemy');

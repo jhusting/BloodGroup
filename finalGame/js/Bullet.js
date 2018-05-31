@@ -41,6 +41,7 @@ function destroyEnemy(bullet, enemy)
 {
 	var corpse = new Corpse(game, 1, 0, enemy.x, enemy.y);
 	game.add.existing(corpse);
+	corpses.add(corpse);
 
 	if(enemy.seen != null)
 		enemy.seen.destroy();

@@ -49,6 +49,9 @@ Final.Boot.prototype =
 		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room2', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room3', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room4', 'room4.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room5', 'room5.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room6', 'room6.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.spritesheet('datGoodSheet', 'tileset.png', 32, 32);
 	},
 	create: function()
@@ -127,7 +130,7 @@ Final.Play = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
 	var gunGuy, enemies, map, enemyBullets;
-	var bigRoom, bloods;
+	var bigRoom, bloods, corpses;
 };
 Final.Play.prototype =
 {
@@ -151,7 +154,7 @@ Final.Play.prototype =
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
-		var mapArr = ['room1', 'room2', 'room3', 'room1', 'room2', 'room3'];
+		var mapArr = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6'];
 		var name = 'startRoom';
 
 		var graph = [	[0, 0, 0, 0, 0], 
@@ -168,6 +171,8 @@ Final.Play.prototype =
 		
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
+
+		corpses = game.add.group();
 
 		enemies.forEach(generatePath, this, true, game, bigRoom.walls)
 		bloods = game.add.group();
@@ -190,6 +195,7 @@ Final.Play.prototype =
 	{
 		//game.physics.arcade.collide(player, walls);
 		this.game.canvas.style.cursor = "crosshair";
+		//game.physics.arcade.collide(enemyBullets, bigRoom.walls, bulletKill, null, this);
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
@@ -246,6 +252,11 @@ Final.Dead.prototype =
 		}
 	}
 };
+
+function bulletKill(bullet)
+{
+	bullet.destroy();
+}
 
 function deadFun(player, bullet)
 {

@@ -16,24 +16,5 @@ Corpse.prototype.constructor = Corpse;
 
 Corpse.prototype.update = function()
 {
-	var playerOn = game.physics.arcade.overlap(this, player);
-	if(playerOn && player.gaunt && game.input.keyboard.isDown(Phaser.Keyboard.E))
-	{
-		this.heldTime++;
-		this.bar.scale.set((this.heldTime/60)*16, 1);
-		player.eating = true;
-		if(this.heldTime > 60)
-		{
-			player.gaunt = false;
-			player.speed = 250;
-			this.bar.destroy();
-			this.destroy();
-		}
-	}
-	else
-	{
-		player.eating = false;
-		this.bar.scale.set(0, 1);
-		this.heldTime = 0;
-	}
-}
+	
+};
