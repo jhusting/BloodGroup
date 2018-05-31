@@ -13,12 +13,14 @@
 // define global game container object
 var Final = { };
 
-let textStyle = {
+let textStyle = 
+{
 	font: 'ProggyTinyTTSZ',
-	fontSize: 36,
+	fontSize: 32,
 	fill: '#ffffff',
 	wordWrap: true,
-	wordWrapWidth: 700
+	wordWrapWidth: (700-64),
+	align: 'left'
 };
 
 //new boot goofin
@@ -44,6 +46,7 @@ Final.Boot.prototype =
 		this.load.audio('turretShot', '../audio/turretShot.wav');
 
 		this.load.path = './assets/tiles/Athene/';
+		this.load.tilemap('tutorial', 'tutorial.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
@@ -98,7 +101,12 @@ Final.MainMenu.prototype =
 	}
 }
 
-Final.Tutorial = function() { var video; };
+Final.Tutorial = function() 
+{ 
+	var cursors, player, sCam, mouseX, mouseY, walls;
+	var gunGuy, enemies, map, enemyBullets;
+	var bigRoom, bloods, corpses, text, line, lineCounter; 
+};
 Final.Tutorial.prototype = 
 {
 	init: function() 
@@ -113,18 +121,133 @@ Final.Tutorial.prototype =
 	create: function()
 	{
 		console.log('Tutorial: create');
-		video = game.add.video('eat');
-		video.play(true);
-		video.addToWorld(0, 0);
+		bigRoom = game.add.tilemap('tutorial');
+		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
+		bigRoom.background = bigRoom.createLayer('Background');
+		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.shadows = bigRoom.createLayer('Shadows');
+		bigRoom.walls.resizeWorld();
 
-		video = game.add.video('melee');
-		video.play(true);
-		video.addToWorld(200, 0);
+		bigRoom.setCollisionByExclusion([], true, 'Walls');
+
+		player = new Player(game, 'player');
+		game.add.existing(player);
+		player.tutorial = true;
+
+		cursors = game.input.keyboard.createCursorKeys();
+
+		enemies = game.add.group();
+		enemyBullets = game.add.group();
+		corpses = game.add.group();
+		bloods = game.add.group();
+
+		let textStyle = 
+		{
+			font: 'ProggyTinyTTSZ',
+			fontSize: 32,
+			fill: '#ffffff',
+			wordWrap: true,
+			wordWrapWidth: (700-64),
+			align: 'left'
+		};
+
+		line = 1;
+		text = game.add.text(32, 32, '\"Alright #120, let\'s continue with the tests.\"' + 
+					'\n\"Let\'s have you move around for me.\" (WASD)', textStyle);
+		lineCounter = 0;
+
+		player.x = 352;
+		player.y = 17*32;
 	}, 
 	update: function()
 	{
+		this.game.canvas.style.cursor = "crosshair";
+		game.physics.arcade.collide(player, bigRoom.walls);
+
+		if(line == 1 && (game.input.keyboard.isDown(Phaser.Keyboard.W) || 
+			game.input.keyboard.isDown(Phaser.Keyboard.S) ||
+			game.input.keyboard.isDown(Phaser.Keyboard.A) || 
+			game.input.keyboard.isDown(Phaser.Keyboard.D)))
+		{
+			line = 2;
+			text.destroy();
+			text = game.add.text(32, 32, '\"The gun we\'ve outfitted you is dangerous: firing the weapon draws all ' +  
+				'the blood from body and propels it out the barrel. Luckily, since you are a blood imp, you seem to ' +
+				'have a lot of blood.\"' + '\n\nPress space to continue. . .', textStyle);
+		}
+
+		if(line == 2 && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+		{
+			line = 3;
+			var corpse = new Corpse(game, 1, 0, 352 - 128, 17*32);
+			game.add.existing(corpse);
+			corpses.add(corpse);
+
+			text.destroy();
+			text = game.add.text(32, 32, '\"Hold left click and aim with the mouse to fire the gun, but be careful: ' +  
+				'once you\'ve fired you have no more blood, and will soon die.\"' +
+				'\n\"In order to regain your blood you must eat a corpse. Hold E while on top of a corpse to eat it.\"', textStyle);
+		}
+
+		if(line == 3 && game.input.keyboard.isDown(Phaser.Keyboard.E))
+		{
+			line = 4;
+			text.destroy();
+			var enemy = new Enemy(352 + 128, 17*32, game, 'gunGuy');
+			game.add.existing(enemy);
+			enemies.add(enemy);
+
+			text = game.add.text(32, 32, '\"You move quicker and run out of blood slower when standing on blood.\"' +  
+				'\n\"You can also stealth kill an enemy by pressing F when near them and not seen.\"', textStyle);
+		}
+
+		if(line == 4 && game.input.keyboard.isDown(Phaser.Keyboard.F))
+		{
+			line = 5;
+			text.destroy();
+			text = game.add.text(32, 32, 'Press space to continue. . .', textStyle);
+		}
+
+		if(line == 5 && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+		{
+			game.state.start('Transition');
+		}
+
+		var onBlood = game.physics.arcade.overlap(player, bloods);
+		if(onBlood && !player.onBlood)
+			player.onBlood = true;
+		else if(!onBlood)
+			player.onBlood = false;
 	}
 };
+
+Final.Transition = function(){ var button; };
+
+Final.Transition.prototype = 
+{
+	init: function() 
+	{
+		console.log('Boot: init');
+	},
+	
+	preload: function() 
+	{
+		console.log('Boot: preload');
+	},
+	create: function()
+	{
+		console.log('Boot: create');
+
+		var text = game.add.text(32, 350-32, 'This is story of how you break out of the facility that has tested and ' +  
+				'tortured you for years. \n\nPress space to begin your escape.', textStyle);
+	}, 
+	update: function()
+	{
+		this.game.canvas.style.cursor = "crosshair";
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+			game.state.start('Play');
+	}
+}
 
 Final.Play = function()
 {
@@ -302,6 +425,7 @@ var game = new Phaser.Game(700, 700, Phaser.AUTO);
 game.state.add('Boot', Final.Boot);
 game.state.add('MainMenu', Final.MainMenu);
 game.state.add('Tutorial', Final.Tutorial);
+game.state.add('Transition', Final.Transition);
 game.state.add('Play', Final.Play);
 game.state.add('Dead', Final.Dead);
 game.state.start('Boot');

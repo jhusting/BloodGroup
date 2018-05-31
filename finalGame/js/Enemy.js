@@ -67,6 +67,31 @@ Enemy.prototype.constructor = Enemy;
 
 Enemy.prototype.update = function ()
 {
+	this.playerLine = new Phaser.Line(this.x, this.y, player.x, player.y);
+	if(this.playerLine.length < 64 && this.seen === null)
+		{
+			this.X.alpha = 1;
+
+			if(!this.dead && game.input.keyboard.isDown(Phaser.Keyboard.F))
+			{
+				var timer = game.time.create(true);			
+
+				timer.add(100, function() {
+					//timer.start();
+					var corpse = new Corpse(game, 1, 0, this.x, this.y);
+					game.add.existing(corpse);
+					corpses.add(corpse);
+					this.graphics.destroy();
+					this.X.destroy();
+					this.destroy();
+				}, this);
+				
+				timer.start();
+				this.dead = true;
+			}
+		}
+		else
+			this.X.alpha = 0;
 }
 
 /*

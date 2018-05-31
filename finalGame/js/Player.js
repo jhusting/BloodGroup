@@ -20,6 +20,8 @@ function Player(game, key)
 
 	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('pl_RightShoot', 1, 9, '', 2), 30, false);
 	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('pl_LeftShoot', 1, 9, '', 2), 30, false);
+	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('pl_DownShoot', 1, 9, '', 2), 30, false);
+	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('pl_UpShoot', 1, 9, '', 2), 30, false);
 
 	this.animations.play('rightIdle');
 
@@ -81,6 +83,7 @@ function Player(game, key)
 	this.shooting = false;
 	this.facingRight = true;
 	this.facingUp = false;
+	this.tutorial = false;
 }
 
 Player.prototype = Object.create(Phaser.Sprite.prototype);
@@ -375,7 +378,10 @@ Player.prototype.dying = function()
 	//text.alpha = 0;
 
 	timer.add(2000, function() {
-		game.state.start('Dead');
+		if(!this.tutorial)
+			game.state.start('Dead');
+		else
+			game.state.start('Tutorial');
 	}, this);
 
 	timer.start();
@@ -393,15 +399,29 @@ Player.prototype.makeBullet = function()
 
 function fire(player)
 {
-	if(game.input.worldX >= player.x)
+	var line = new Phaser.Line(player.x, player.y, game.input.worldX, game.input.worldY);
+	var ang = normRad(line.angle);
+
+	console.log(ang);
+	if(ang >= 325 || ang <= 45)
 	{
 		player.animations.play('rightShoot');
 		player.facingRight = true;
 	}
-	else
+	else if(ang > 45 && ang < 135)
+	{
+		player.animations.play('downShoot');
+		player.facingRight = true;
+	}
+	else if(ang >= 135 && ang <= 225)
 	{
 		player.animations.play('leftShoot');
 		player.facingRight = false;
+	}
+	else 
+	{
+		player.animations.play('upShoot');
+		player.facingRight = true;
 	}
 
 	player.shooting = true;
