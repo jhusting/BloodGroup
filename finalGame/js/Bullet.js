@@ -39,6 +39,16 @@ Bullet.prototype.update = function()
 
 function destroyEnemy(bullet, enemy)
 {
+	var puddle;
+	if(Math.random()*100 < 50)
+		puddle = game.add.sprite(enemy.x, enemy.y, 'atlas', 'puddle1');
+	else
+		puddle = game.add.sprite(enemy.x, enemy.y, 'atlas', 'puddle2');
+
+	puddle.anchor.set(0.5, 0.5);
+	game.physics.arcade.enable(puddle);
+	bloods.add(puddle);
+
 	var corpse = new Corpse(game, 1, 0, enemy.x, enemy.y);
 	game.add.existing(corpse);
 	corpses.add(corpse);

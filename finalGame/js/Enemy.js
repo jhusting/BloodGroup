@@ -74,6 +74,15 @@ Enemy.prototype.update = function ()
 
 			if(!this.dead && game.input.keyboard.isDown(Phaser.Keyboard.F))
 			{
+				var puddle;
+				if(Math.random()*100 < 50)
+					puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle1');
+				else
+					puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle2');
+
+				puddle.anchor.set(0.5, 0.5);
+				game.physics.arcade.enable(puddle);
+				bloods.add(puddle);
 				var timer = game.time.create(true);			
 
 				timer.add(100, function() {
@@ -238,13 +247,12 @@ function generatePath(guy, game, layer)
 			break;
 	}
 
-	var grph = game.add.graphics();
+	/*var grph = game.add.graphics();
 	grph.moveTo(guy.path[0].x, guy.path[0].y);
 	grph.lineStyle(2, 0xffffff, 1);
 
 	for(var i = 0; i < guy.path.length; i++)
 	{
 		grph.lineTo(guy.path[i].x, guy.path[i].y);
-	}
-	//console.log(guy.path);
+	}*/
 }

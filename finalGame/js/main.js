@@ -5,13 +5,15 @@
 //http://www.purple-planet.com/dark-backgrounds/4584537439
 //Machine gun Gunshot Sound: "Gun Shot.wav" by Bird_man
 //https://freesound.org/people/Bird_man/sounds/275151/
-//Player lazer sound: "Laser shot silenced" by buboproducer
+//player lazer sound: "Laser shot silenced" by buboproducer
 //https://freesound.org/people/bubaproducer/sounds/151022/
 //Turret lazer sound: "laser" by fins
 //https://freesound.org/people/fins/sounds/191594/
 
 // define global game container object
 var Final = { };
+
+var lowspec = false;
 
 let textStyle = 
 {
@@ -59,7 +61,7 @@ Final.Boot.prototype =
 	},
 	create: function()
 	{
-		//this.time.desiredFps = 30;
+		this.time.desiredFps = 45;
 	}, 
 	update: function()
 	{
@@ -85,11 +87,13 @@ Final.MainMenu.prototype =
 		console.log('Boot: create');
 		this.game.canvas.style.cursor = "crosshair";
 		var startMusic = this.add.audio('music');
-		startMusic.play('', 0, .25, true);
+		//startMusic.play('', 0, .25, true);
 		button = game.add.button(game.world.centerX - 55, game.world.centerY - 9,
 									'atlas', startGame, this, 'startHover', 'start', 'startHover');
 		var button2 = game.add.button(game.world.centerX - 55, game.world.centerY - 9 + 18,
 									'atlas', startTutorial, this, 'controlsHover', 'controls', 'controlsHover');
+		var button3 = game.add.button(game.world.centerX - 55, game.world.centerY - 9 + 36,
+									'atlas', toggleFPS, this, 'controlsHover', 'controls', 'controlsHover');
 
 		var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
 		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
@@ -104,7 +108,7 @@ Final.MainMenu.prototype =
 Final.Tutorial = function() 
 { 
 	var cursors, player, sCam, mouseX, mouseY, walls;
-	var gunGuy, enemies, map, enemyBullets;
+	var gunGuy, enemies, map, enemyBullets, numEnemies;
 	var bigRoom, bloods, corpses, text, line, lineCounter; 
 };
 Final.Tutorial.prototype = 
@@ -125,6 +129,7 @@ Final.Tutorial.prototype =
 		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
 		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.decorations = bigRoom.createLayer('Decorations');
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
@@ -136,10 +141,11 @@ Final.Tutorial.prototype =
 
 		cursors = game.input.keyboard.createCursorKeys();
 
-		enemies = game.add.group();
-		enemyBullets = game.add.group();
-		corpses = game.add.group();
 		bloods = game.add.group();
+		corpses = game.add.group();
+		enemyBullets = game.add.group();
+		enemies = game.add.group();
+		numEnemies = 0;
 
 		let textStyle = 
 		{
@@ -179,9 +185,20 @@ Final.Tutorial.prototype =
 		if(line == 2 && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
 			line = 3;
+
+			var puddle;
+			if(Math.random()*100 < 50)
+				puddle = game.add.sprite(352 - 128, 17*32, 'atlas', 'puddle1');
+			else
+				puddle = game.add.sprite(352 - 128, 17*32, 'atlas', 'puddle2');
+
 			var corpse = new Corpse(game, 1, 0, 352 - 128, 17*32);
 			game.add.existing(corpse);
 			corpses.add(corpse);
+
+			puddle.anchor.set(0.5, 0.5);
+			game.physics.arcade.enable(puddle);
+			bloods.add(puddle);
 
 			text.destroy();
 			text = game.add.text(32, 32, '\"Hold left click and aim with the mouse to fire the gun, but be careful: ' +  
@@ -252,7 +269,7 @@ Final.Transition.prototype =
 Final.Play = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
-	var gunGuy, enemies, map, enemyBullets;
+	var gunGuy, enemies, map, enemyBullets, numEnemies;
 	var bigRoom, bloods, corpses;
 };
 Final.Play.prototype =
@@ -264,8 +281,10 @@ Final.Play.prototype =
 	create: function()
 	{
 		console.log('Play: create');
+
 		this.game.canvas.style.cursor = "crosshair";
 		game.physics.startSystem(Phaser.Physics.ARCADE);
+		numEnemies = 0;
 
 		walls = game.add.group();
 		walls.enableBody = true;
@@ -274,6 +293,7 @@ Final.Play.prototype =
 		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
 		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.decorations = bigRoom.createLayer('Decorations');
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
@@ -295,10 +315,10 @@ Final.Play.prototype =
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
 
+		bloods = game.add.group();
 		corpses = game.add.group();
 
-		enemies.forEach(generatePath, this, true, game, bigRoom.walls)
-		bloods = game.add.group();
+		enemies.forEach(generatePath, this, true, game, bigRoom.walls);
 		player = new Player(game, 'player');
 		game.add.existing(player);
 		
@@ -307,12 +327,18 @@ Final.Play.prototype =
 		sCam.anchor.y = 0.5;
 		sCam.alpha = 0;
 
-		game.camera.follow(sCam, null, .1, .1);
-		this.physics.arcade.enable(sCam);
-
+		if(!lowspec)
+		{
+			game.camera.follow(sCam, null, .1, .1);
+			this.physics.arcade.enable(sCam);
+		}
+		else
+			game.camera.follow(player, null, .1, .1);
 
 		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
+		this.debug = true;
+		console.log(numEnemies);
 	},
 	update: function()
 	{
@@ -323,6 +349,7 @@ Final.Play.prototype =
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
 		var onBlood = game.physics.arcade.overlap(player, bloods);
+
 		if(onBlood && !player.onBlood)
 			player.onBlood = true;
 		else if(!onBlood)
@@ -334,18 +361,25 @@ Final.Play.prototype =
 		var tX = ((mouseX - player.x) / 6) + player.x;
 		var tY = ((mouseY - player.y) / 6) + player.y;
 
-
 		enemies.forEach(drawLines, this, true, this.bitmap);
 
-		if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
+		if(!lowspec)
 		{
-			var moveSpd = (this.math.difference(tX, sCam.x) + this.math.difference(tY, sCam.y))/2 * 45;
-			this.physics.arcade.moveToXY(sCam, tX, tY, moveSpd);
+			if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
+			{
+				var moveSpd = (this.math.difference(tX, sCam.x) + this.math.difference(tY, sCam.y))/2 * 45;
+				this.physics.arcade.moveToXY(sCam, tX, tY, moveSpd);
+			}
+			else
+			{
+				sCam.body.velocity.y = 0;
+				sCam.body.velocity.x = 0;
+			}
 		}
 		else
 		{
-			sCam.body.velocity.y = 0;
-			sCam.body.velocity.x = 0;
+			//sCam.x = tX;
+			//sCam.y = tY;
 		}
 	}
 };
@@ -396,7 +430,8 @@ function drawLines(gunGuy, bitmap)
 {
 	gunGuy.graphics.clear();
 	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
-	gunGuy.graphics.lineStyle(2, 0xffffff, 1);
+	//gunGuy.graphics.lineStyle(2, 0xffffff, 1);
+	gunGuy.graphics.lineStyle(2, 0xffffff, .75);	
 
 	gunGuy.graphics.lineTo(gunGuy.lessLine.end.x, gunGuy.lessLine.end.y);
 
@@ -417,6 +452,18 @@ function startGame()
 function startTutorial()
 {
 	game.state.start('Tutorial');
+}
+function toggleFPS()
+{
+	lowspec = !lowspec;
+
+	if(lowspec)
+		this.time.desiredFps = 30;
+	else
+		this.time.desiredFps = 60;
+
+	console.log('desired fps: ' + this.time.desiredFps + 
+				'\nlowspec: '  + lowspec);
 }
 
 // init game

@@ -66,6 +66,12 @@ function renderRooms(graph, map)
 				data = room.copy(0, 0, 16, 15, layer);
 				map.paste(worldX, worldY, data, map.walls);
 
+				layer = room.createLayer('Decorations');
+				layer.alpha = 0;
+
+				data = room.copy(0, 0, 16, 15, layer);
+				map.paste(worldX, worldY, data, map.decorations);
+
 				layer  = room.createLayer('Shadows');
 				layer.alpha = 0;
 
@@ -131,6 +137,7 @@ function renderRooms(graph, map)
 					var guy = new GunGuy((worldX)*32 + tile.worldX, (worldY)*32 + tile.worldY, game);
 					game.add.existing(guy);
 					enemies.add(guy);
+					numEnemies++;
 				}
 
 				room.destroy();

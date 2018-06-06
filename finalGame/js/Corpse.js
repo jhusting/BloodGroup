@@ -1,6 +1,12 @@
 function Corpse(game, scale, rotation, x, y)
 {
-	Phaser.Sprite.call(this, game, x, y, 'atlas', 'corpse');
+	if(Math.random()*100 < 50)
+		Phaser.Sprite.call(this, game, x, y, 'atlas', 'skull');
+	else
+		Phaser.Sprite.call(this, game, x, y, 'atlas', 'ribs');
+
+	numEnemies--;
+	console.log(numEnemies);
 
 	this.anchor.set(0.5, 0.5);
 	game.physics.arcade.enable(this);

@@ -8,20 +8,26 @@ function Player(game, key)
 	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
 	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('pl_LeftIdle', 1, 2, '', 2), 3, true);
 
+	this.animations.add('rightIdle_Hurt', Phaser.Animation.generateFrameNames('pl_IdleGauntRight', 1, 2, '', 2), 3, true);
+	this.animations.add('leftIdle_Hurt', Phaser.Animation.generateFrameNames('pl_IdleGauntLeft', 1, 2, '', 2), 3, true);
+
 	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('pl_RightRun', 2, 12, '', 2), 22, true);
 	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('pl_LeftRun', 2, 12, '', 2), 22, true);
 	this.animations.add('upRun', Phaser.Animation.generateFrameNames('pl_UpRun', 2, 12, '', 2), 22, true);
 	this.animations.add('downRun', Phaser.Animation.generateFrameNames('pl_DownRun', 2, 12, '', 2), 22, true);
 
-	this.animations.add('rightRun_Hurt', Phaser.Animation.generateFrameNames('pl_RightRun', 2, 12, '', 2), 10, true);
-	this.animations.add('leftRun_Hurt', Phaser.Animation.generateFrameNames('pl_LeftRun', 2, 12, '', 2), 10, true);
-	this.animations.add('upRun_Hurt', Phaser.Animation.generateFrameNames('pl_UpRun', 2, 12, '', 2), 10, true);
-	this.animations.add('downRun_Hurt', Phaser.Animation.generateFrameNames('pl_DownRun', 2, 12, '', 2), 10, true);
+	this.animations.add('rightRun_Hurt', Phaser.Animation.generateFrameNames('pl_GauntRight', 2, 12, '', 2), 10, true);
+	this.animations.add('leftRun_Hurt', Phaser.Animation.generateFrameNames('pl_GauntLeft', 2, 12, '', 2), 10, true);
+	this.animations.add('upRun_Hurt', Phaser.Animation.generateFrameNames('pl_GauntUp', 2, 12, '', 2), 10, true);
+	this.animations.add('downRun_Hurt', Phaser.Animation.generateFrameNames('pl_GauntDown', 2, 12, '', 2), 10, true);
 
 	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('pl_RightShoot', 1, 9, '', 2), 30, false);
 	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('pl_LeftShoot', 1, 9, '', 2), 30, false);
 	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('pl_DownShoot', 1, 9, '', 2), 30, false);
 	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('pl_UpShoot', 1, 9, '', 2), 30, false);
+
+	this.animations.add('death', Phaser.Animation.generateFrameNames('pl_Death', 1, 6, '', 2), 10, false);
+	this.animations.add('death_Hurt', Phaser.Animation.generateFrameNames('pl_GauntDeath', 1, 6, '', 2), 10, false);
 
 	this.animations.play('rightIdle');
 
@@ -194,9 +200,9 @@ Player.prototype.update = function()
 		this.shootingBar.alpha = 1;
 		this.shootingPart.alpha = 1;
 
-		this.shootingPart.scale.set( 1, (this.shotCounter/22) * 6 );
+		this.shootingPart.scale.set( 1, (this.shotCounter/(game.time.desiredFps/3)) * 6 );
 
-		if(this.shotCounter == 22)
+		if(this.shotCounter == (game.time.desiredFps/3))
 		{
 			this.makeBullet();
 		}
@@ -215,14 +221,15 @@ Player.prototype.update = function()
 		this.shootingPart.alpha = 0;
 		this.shotCounter = 0;
 		this.shooting = false;
-
-		this.pickAnimation();
 	}
+
+	if(!this.shooting && !this.dead)
+		this.pickAnimation();
 };
 
 Player.prototype.processInput = function ()
 {
-	if(game.input.keyboard.isDown(Phaser.Keyboard.W)) 
+	if(game.input.keyboard.isDown(Phaser.Keyboard.W))
 	{
 		if(Math.abs(this.body.velocity.x) == 0)
 			this.body.velocity.y = -this.speed;
@@ -310,16 +317,26 @@ Player.prototype.pickAnimation = function()
 	else
 	{
 		if(this.facingRight)
-			this.animations.play('rightIdle');
+		{
+			if(!this.gaunt)
+				this.animations.play('rightIdle');
+			else
+				this.animations.play('rightIdle_Hurt');
+		}
 		else
-			this.animations.play('leftIdle');
+		{
+			if(!this.gaunt)
+				this.animations.play('leftIdle');
+			else
+				this.animations.play('leftIdle_Hurt');
+		}
 	}
 
 };
 
 Player.prototype.emit = function()
 {
-	if(this.emitterCounter > 7)
+	if(this.emitterCounter > (game.time.desiredFps/(60/7)))
 	{
 		this.emitter.x = this.x;
 		this.emitter.y = this.y;
@@ -372,9 +389,14 @@ Player.prototype.wobbleRight = function()
 
 Player.prototype.dying = function()
 {
+	if(this.gaunt)
+			this.animations.play('death_Hurt');
+		else
+			this.animations.play('death');
+
 	var timer = game.time.create(true);
-	game.deadText = game.add.text(this.x - 150, this.y - 160, 
-			'You died.', textStyle);
+	/*game.deadText = game.add.text(this.x - 150, this.y - 160, 
+			'You died.', textStyle);*/
 	//text.alpha = 0;
 
 	timer.add(2000, function() {
@@ -402,7 +424,6 @@ function fire(player)
 	var line = new Phaser.Line(player.x, player.y, game.input.worldX, game.input.worldY);
 	var ang = normRad(line.angle);
 
-	console.log(ang);
 	if(ang >= 325 || ang <= 45)
 	{
 		player.animations.play('rightShoot');
@@ -434,7 +455,7 @@ function eat(player, corpse)
 		corpse.heldTime++;
 		corpse.bar.scale.set((corpse.heldTime/60)*16, 1);
 		player.eating = true;
-		if(corpse.heldTime > 60)
+		if(corpse.heldTime > game.time.desiredFps)
 		{
 			player.gaunt = false;
 			player.speed = 250;

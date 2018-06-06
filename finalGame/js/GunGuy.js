@@ -2,7 +2,7 @@ function GunGuy(x, y, game)
 {
 	Enemy.call(this, x + 16, y + 16, game, 'gunGuy');
 
-	this.scale.set(0.75);
+	//this.scale.set(0.75);
 
 	this.lineDist = 550;
 
@@ -11,7 +11,11 @@ function GunGuy(x, y, game)
 
 	this.seenFrames = 0;
 
-	//generatePath(this, game, bigRoom.walls);
+	this.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 2, '', 2), 3, true);
+	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('EnemyRightRun', 1, 3, '', 2), 5, true);
+	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('EnemyLeftRun', 1, 6, '', 2), 8, true);
+	this.animations.add('upRun', Phaser.Animation.generateFrameNames('EnemyUpRun', 1, 6, '', 2), 5, true);
+	this.animations.add('downRun', Phaser.Animation.generateFrameNames('EnemyDownRun', 1, 6, '', 2), 5, true);
 }
 
 GunGuy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -26,7 +30,12 @@ GunGuy.prototype.update = function ()
 	this.X.x = this.x;
 	this.X.y = this.y;
 	//console.log(this.exists);
-	if(this.discovered)
+	if(lowspec && !this.inCamera)
+	{
+		this.body.velocity.x = 0;
+		this.body.velocity.y = 0;
+	}
+	else if(this.discovered)
 	{
 		//draw a line from the center of this sprite to the player
 		this.playerLine = new Phaser.Line(this.x, this.y, player.x, player.y);
@@ -81,13 +90,20 @@ GunGuy.prototype.update = function ()
 		this.lessLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.lessDeg), this.lineDist);
 		this.moreLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.moreDeg), this.lineDist);
 
-		var point = getClosestPoint(this.lessLine, bigRoom.walls, 5);
+		if(!lowspec)
+			var point = getClosestPoint(this.lessLine, bigRoom.walls, 5);
+		else
+			var point = getClosestPoint(this.lessLine, bigRoom.walls, 8);
 		if(point != null)
 		{
 			this.lessLine = new Phaser.Line(this.x, this.y, point.x, point.y);
 		}
 
-		point = getClosestPoint(this.moreLine, bigRoom.walls, 5);
+		if(!lowspec)
+			point = getClosestPoint(this.moreLine, bigRoom.walls, 5);
+		else
+			point = getClosestPoint(this.moreLine, bigRoom.walls, 8);
+
 		if(point != null)
 		{
 			this.moreLine = new Phaser.Line(this.x, this.y, point.x, point.y);
@@ -128,10 +144,20 @@ GunGuy.prototype.update = function ()
 				var timer = game.time.create(true);			
 
 				timer.add(100, function() {
-					//timer.start();
+					var puddle;
+					if(Math.random()*100 < 50)
+						puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle1');
+					else
+						puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle2');
+
+					puddle.anchor.set(0.5, 0.5);
+					game.physics.arcade.enable(puddle);
+					bloods.add(puddle);
+
 					var corpse = new Corpse(game, 1, 0, this.x, this.y);
 					game.add.existing(corpse);
 					corpses.add(corpse);
+
 					this.graphics.destroy();
 					this.X.destroy();
 					this.destroy();
@@ -143,8 +169,42 @@ GunGuy.prototype.update = function ()
 		}
 		else
 			this.X.alpha = 0;
+
+		this.pickAnimation();
 	}
 }
+
+GunGuy.prototype.pickAnimation = function()
+{
+	if(this.body.velocity.x > 0 || (this.body.velocity.x > 0 && this.body.velocity.y > 0)) //SE
+	{
+		this.animations.play('rightRun');
+	}
+	else if(this.body.velocity.x > 0 && this.body.velocity.y < 0) //NE
+	{
+		this.animations.play('rightRun');
+	}
+	else if(this.body.velocity.x < 0 || (this.body.velocity.x < 0 && this.body.velocity.y < 0)) //NW
+	{
+		this.animations.play('leftRun');
+	}
+	else if(this.body.velocity.x < 0 && this.body.velocity.y > 0) //SW
+	{
+		this.animations.play('leftRun');
+	}
+	else if(this.body.velocity.y > 0)
+	{
+		this.animations.play('downRun');
+	}
+	else if(this.body.velocity.y < 0)
+	{
+		this.animations.play('upRun');
+	}
+	else
+	{
+		this.animations.play('idle');
+	}
+};
 
 /*
 	seenFunction
@@ -159,7 +219,7 @@ function seenFunction(guy)
 	guy.seenY = player.y;
 	guy.middleDeg = guy.playerAng;
 
-	if(guy.bulletCounter > 4)
+	if(guy.bulletCounter > (game.time.desiredFps/(60/4)))
 	{
 		guy.shotSound.play('', 0, .05, false);
 		var bull = game.add.sprite(guy.x - 8 + Math.random()*16,
