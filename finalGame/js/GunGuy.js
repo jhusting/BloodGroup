@@ -11,11 +11,20 @@ function GunGuy(x, y, game)
 
 	this.seenFrames = 0;
 
-	this.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 2, '', 2), 3, true);
-	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('EnemyRightRun', 1, 3, '', 2), 5, true);
-	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('EnemyLeftRun', 1, 6, '', 2), 8, true);
-	this.animations.add('upRun', Phaser.Animation.generateFrameNames('EnemyUpRun', 1, 6, '', 2), 5, true);
-	this.animations.add('downRun', Phaser.Animation.generateFrameNames('EnemyDownRun', 1, 6, '', 2), 5, true);
+	this.discovered = true;
+
+	this.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 6, '', 2), 3, true);
+	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('EnemyRightRun', 1, 5, '', 2), 3, true);
+	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('EnemyLeftRun', 1, 5, '', 2), 3, true);
+	this.animations.add('upRun', Phaser.Animation.generateFrameNames('EnemyUpRun', 1, 4, '', 2), 3, true);
+	this.animations.add('downRun', Phaser.Animation.generateFrameNames('EnemyDownRun', 2, 4, '', 2), 3, true);
+
+	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('EnemyRightShoot', 1, 4, '', 2), 5, true);
+	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('EnemyLeftShoot', 1, 4, '', 2), 5, true);
+	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('EnemyUpShoot', 1, 2, '', 2), 5, true);
+	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('EnemyDownShoot', 1, 2, '', 2), 5, true);
+
+	this.shooting = false;
 }
 
 GunGuy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -23,19 +32,18 @@ GunGuy.prototype.constructor = GunGuy;
 
 GunGuy.prototype.update = function ()
 {
-	this.bringToTop();
-	if(this.inCamera)
-		this.discovered = true;
+	/*if(this.inCamera)
+		this.discovered = true;*/
 
 	this.X.x = this.x;
 	this.X.y = this.y;
 	//console.log(this.exists);
-	if(lowspec && !this.inCamera)
+	/*if(lowspec && !this.inCamera)
 	{
 		this.body.velocity.x = 0;
 		this.body.velocity.y = 0;
 	}
-	else if(this.discovered)
+	else */if(this.discovered)
 	{
 		//draw a line from the center of this sprite to the player
 		this.playerLine = new Phaser.Line(this.x, this.y, player.x, player.y);
@@ -113,16 +121,18 @@ GunGuy.prototype.update = function ()
 		{
 			if(this.moreDeg < 60 && (this.playerAng > this.lessDeg || this.playerAng < this.moreDeg))
 				seenFunction(this);
-			if(this.moreDeg >= 60 && (this.playerAng > this.lessDeg && this.playerAng < this.moreDeg))
+			else if(this.moreDeg >= 60 && (this.playerAng > this.lessDeg && this.playerAng < this.moreDeg))
 				seenFunction(this);
 			else if(this.seen !== null)
 			{
+				this.shooting = false;
 				this.seen.destroy();
 				this.seen = null;
 			}
 		}
 		else if(this.seen !== null)
 		{
+			this.shooting = false;
 			this.seen.destroy();
 			this.seen = null;
 		}
@@ -137,40 +147,14 @@ GunGuy.prototype.update = function ()
 
 		if(this.playerLine.length < 64 && this.seen === null)
 		{
-			this.X.alpha = 1;
-
-			if(!this.dead && game.input.keyboard.isDown(Phaser.Keyboard.F))
-			{
-				var timer = game.time.create(true);			
-
-				timer.add(100, function() {
-					var puddle;
-					if(Math.random()*100 < 50)
-						puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle1');
-					else
-						puddle = game.add.sprite(this.x, this.y, 'atlas', 'puddle2');
-
-					puddle.anchor.set(0.5, 0.5);
-					game.physics.arcade.enable(puddle);
-					bloods.add(puddle);
-
-					var corpse = new Corpse(game, 1, 0, this.x, this.y);
-					game.add.existing(corpse);
-					corpses.add(corpse);
-
-					this.graphics.destroy();
-					this.X.destroy();
-					this.destroy();
-				}, this);
-				
-				timer.start();
-				this.dead = true;
-			}
+			Enemy.prototype.melee.call(this);
 		}
 		else
 			this.X.alpha = 0;
 
 		this.pickAnimation();
+		this.draw();
+		this.bringToTop();
 	}
 }
 
@@ -206,6 +190,18 @@ GunGuy.prototype.pickAnimation = function()
 	}
 };
 
+GunGuy.prototype.draw = function()
+{
+	this.graphics.clear();
+	this.graphics.moveTo(this.lessLine.start.x, this.lessLine.start.y);
+	this.graphics.lineStyle(3, 0x000000, .75);	
+
+	this.graphics.lineTo(this.lessLine.end.x, this.lessLine.end.y);
+
+	this.graphics.moveTo(this.moreLine.start.x, this.moreLine.start.y);
+	this.graphics.lineTo(this.moreLine.end.x, this.moreLine.end.y);
+};
+
 /*
 	seenFunction
 	Handles what happens when a gunGuy sees a player
@@ -219,14 +215,19 @@ function seenFunction(guy)
 	guy.seenY = player.y;
 	guy.middleDeg = guy.playerAng;
 
-	if(guy.bulletCounter > (game.time.desiredFps/(60/4)))
+	this.shooting = true;
+
+	if(guy.bulletCounter > (game.time.desiredFps/(60/8)))
 	{
 		guy.shotSound.play('', 0, .05, false);
 		var bull = game.add.sprite(guy.x - 8 + Math.random()*16,
 								   guy.y - 8 + Math.random()*16, 'atlas', 'smallBullet');
+		bull.anchor.set(0.5, 0.5);
+		bull.rotation = guy.playerLine.angle;
 		enemyBullets.add(bull);
 		game.physics.arcade.enable(bull);
-		game.physics.arcade.moveToXY(bull, player.x, player.y, 500);
+		game.physics.arcade.moveToXY(bull, player.x, player.y, 450);
+
 		guy.bulletCounter = -1;
 	}
 	guy.bulletCounter++;
@@ -295,3 +296,4 @@ function moveToXY(guy, x, y, speed)
 	else if(y - guy.y < -1)
 		guy.body.velocity.y = -speed;
 }
+

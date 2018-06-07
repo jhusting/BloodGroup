@@ -41,7 +41,7 @@ function generate(rooms, graph)
 
 }
 
-function renderRooms(graph, map)
+function renderRooms(graph, map, up)
 {
 	for(var i = 0; i < graph.length; i++)
 	{
@@ -50,7 +50,11 @@ function renderRooms(graph, map)
 			if(graph[i][k] !== 1 &&  graph[i][k] !== 0)
 			{
 				var room = game.add.tilemap(graph[i][k]);
-				room.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
+				if(!up)
+					room.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
+				else
+					room.addTilesetImage('tileset', 'datGoodSheetUp', 32, 32);
+
 				var worldX = 2 + k*16 - k;
 				var worldY = 4 + i*14 - i*2;
 
@@ -131,10 +135,24 @@ function renderRooms(graph, map)
 
 				var arr = layer.getTiles(0, 0, 16*32, 14*32, true);
 
-				for(var n = 0; arr.length > 0 && n < 2; n++)
+				var numEnPerRoom = 2;
+
+				if(up)
+				{
+					numEnPerRoom += Math.random()*1.5;
+					numEnPerRoom--;
+					console.log(numEnPerRoom);
+				}
+
+				for(var n = 0; arr.length > 0 && n < numEnPerRoom; n++)
 				{
 					var tile = Phaser.ArrayUtils.removeRandomItem(arr);
-					var guy = new GunGuy((worldX)*32 + tile.worldX, (worldY)*32 + tile.worldY, game);
+					if(Math.random()*100 < 50)
+						var guy = new GunGuy((worldX)*32 + tile.worldX, (worldY)*32 + tile.worldY, game);
+					else
+					{
+						var guy = new Turret((worldX)*32 + tile.worldX, (worldY)*32 + tile.worldY, game);
+					}
 					game.add.existing(guy);
 					enemies.add(guy);
 					numEnemies++;

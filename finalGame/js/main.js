@@ -58,6 +58,19 @@ Final.Boot.prototype =
 		this.load.tilemap('room5', 'room5.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room6', 'room6.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.spritesheet('datGoodSheet', 'tileset.png', 32, 32);
+
+		this.load.path = './assets/tiles/Athene/upper/';
+		this.load.tilemap('bigRoomUp', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('startRoomUp', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room1Up', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room2Up', 'room2.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room3Up', 'room3.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room4Up', 'room4.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room5Up', 'room5.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('room6Up', 'room6.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.spritesheet('datGoodSheetUp', 'tileset.png', 32, 32);
+
+
 	},
 	create: function()
 	{
@@ -69,7 +82,7 @@ Final.Boot.prototype =
 	}
 };
 
-Final.MainMenu = function(){ var button; };
+Final.MainMenu = function(){ var button, low; };
 
 Final.MainMenu.prototype = 
 {
@@ -99,9 +112,16 @@ Final.MainMenu.prototype =
 		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
 		dude.animations.play('rightIdle');
 		dude.anchor.set(.5);
+
+		low = game.add.sprite(game.world.centerX + 100, game.world.centerY, 'atlas', 'player');
+		low.alpha = 0;
 	}, 
 	update: function()
 	{
+		if(lowspec)
+			low.alpha = 1;
+		else
+			low.alpha = 0;
 	}
 }
 
@@ -270,7 +290,7 @@ Final.Play = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
 	var gunGuy, enemies, map, enemyBullets, numEnemies;
-	var bigRoom, bloods, corpses;
+	var bigRoom, bloods, corpses, stairs;
 };
 Final.Play.prototype =
 {
@@ -310,7 +330,7 @@ Final.Play.prototype =
 
 		enemies = game.add.group();
 		enemyBullets = game.add.group();
-		renderRooms(graph, bigRoom);
+		renderRooms(graph, bigRoom, false);
 		
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
@@ -335,19 +355,34 @@ Final.Play.prototype =
 		else
 			game.camera.follow(player, null, .1, .1);
 
+		stairs = null;
+
+		/*stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
+		stairs.anchor.set(0.5);
+
+		var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
+		game.add.existing(arrow);*/
+
 		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
-		this.debug = true;
 		console.log(numEnemies);
 	},
 	update: function()
 	{
-		//game.physics.arcade.collide(player, walls);
-		this.game.canvas.style.cursor = "crosshair";
+		if(this.game.canvas.style.cursor != 'crosshair')
+			this.game.canvas.style.cursor = "crosshair";
 		//game.physics.arcade.collide(enemyBullets, bigRoom.walls, bulletKill, null, this);
+		if(stairs !== null)
+		{
+			game.physics.arcade.overlap(player, stairs, function() {
+				game.state.start('Upper');
+			}, null, this);
+		}
+
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
+
 		var onBlood = game.physics.arcade.overlap(player, bloods);
 
 		if(onBlood && !player.onBlood)
@@ -361,7 +396,166 @@ Final.Play.prototype =
 		var tX = ((mouseX - player.x) / 6) + player.x;
 		var tY = ((mouseY - player.y) / 6) + player.y;
 
-		enemies.forEach(drawLines, this, true, this.bitmap);
+		//enemies.forEach(drawLines, this, true, this.bitmap);
+
+		enemyBullets.forEach(bulletKill, this, true);
+
+		if(numEnemies == 11 &&  stairs === null)
+		{
+			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
+			stairs.anchor.set(0.5);
+			game.physics.arcade.enable(stairs);
+
+			var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
+			game.add.existing(arrow);
+		}
+
+		if(!lowspec)
+		{
+			if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
+			{
+				var moveSpd = (this.math.difference(tX, sCam.x) + this.math.difference(tY, sCam.y))/2 * 45;
+				this.physics.arcade.moveToXY(sCam, tX, tY, moveSpd);
+			}
+			else
+			{
+				sCam.body.velocity.y = 0;
+				sCam.body.velocity.x = 0;
+			}
+		}
+		else
+		{
+			//sCam.x = tX;
+			//sCam.y = tY;
+		}
+	}
+};
+
+Final.Upper = function()
+{
+	var cursors, player, sCam, mouseX, mouseY, walls;
+	var gunGuy, enemies, map, enemyBullets, numEnemies;
+	var bigRoom, bloods, corpses, stairs;
+};
+Final.Upper.prototype =
+{
+	preload: function()
+	{
+		console.log('Upper: preload');
+	},
+	create: function()
+	{
+		console.log('Upper: create');
+
+		this.game.canvas.style.cursor = "crosshair";
+		game.physics.startSystem(Phaser.Physics.ARCADE);
+		numEnemies = 0;
+
+		walls = game.add.group();
+		walls.enableBody = true;
+
+   	 	bigRoom = game.add.tilemap('bigRoomUp');
+		bigRoom.addTilesetImage('tileset', 'datGoodSheetUp', 32, 32);
+		bigRoom.background = bigRoom.createLayer('Background');
+		bigRoom.walls = bigRoom.createLayer('Walls');
+		bigRoom.decorations = bigRoom.createLayer('Decorations');
+		bigRoom.shadows = bigRoom.createLayer('Shadows');
+		bigRoom.walls.resizeWorld();
+
+		var mapArr = ['room1Up', 'room2Up', 'room3Up', 'room4Up', 'room5Up', 'room6Up'];
+		var name = 'startRoomUp';
+
+		var graph = [	[0, 0, 0, 0, 0], 
+						[0, 0, 1, 0, 0],
+						[0, 1, name, 1, 0],
+						[0, 0, 1, 0, 0],
+						[0, 0, 0, 0, 0] ];
+
+		generate(mapArr, graph);
+
+		enemies = game.add.group();
+		enemyBullets = game.add.group();
+		console.log('pre redner');
+		renderRooms(graph, bigRoom, true);
+		console.log(graph);
+		
+		bigRoom.setCollisionByExclusion([], true, 'Walls');
+		//bigRoom.walls.debug = true;
+
+		bloods = game.add.group();
+		corpses = game.add.group();
+
+		enemies.forEach(generatePath, this, true, game, bigRoom.walls);
+		player = new Player(game, 'player');
+		game.add.existing(player);
+		
+		sCam = game.add.sprite(player.x, player.y, 'atlas', 'cross');
+		sCam.anchor.x = 0.5;
+		sCam.anchor.y = 0.5;
+		sCam.alpha = 0;
+
+		if(!lowspec)
+		{
+			game.camera.follow(sCam, null, .1, .1);
+			this.physics.arcade.enable(sCam);
+		}
+		else
+			game.camera.follow(player, null, .1, .1);
+
+		stairs = null;
+
+		/*stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
+		stairs.anchor.set(0.5);
+
+		var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
+		game.add.existing(arrow);*/
+
+		walls.setAll('body.immovable', true);
+		cursors = game.input.keyboard.createCursorKeys();
+		console.log(numEnemies);
+	},
+	update: function()
+	{
+		if(this.game.canvas.style.cursor != 'crosshair')
+			this.game.canvas.style.cursor = "crosshair";
+		//game.physics.arcade.collide(enemyBullets, bigRoom.walls, bulletKill, null, this);
+		if(stairs !== null)
+		{
+			game.physics.arcade.overlap(player, stairs, function() {
+				game.state.start('Upper');
+			}, null, this);
+		}
+
+		game.physics.arcade.collide(player, bigRoom.walls);
+		game.physics.arcade.collide(enemies, bigRoom.walls);
+		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
+
+		var onBlood = game.physics.arcade.overlap(player, bloods);
+
+		if(onBlood && !player.onBlood)
+			player.onBlood = true;
+		else if(!onBlood)
+			player.onBlood = false;
+
+
+		mouseX = game.input.worldX;
+		mouseY = game.input.worldY;	
+		var tX = ((mouseX - player.x) / 6) + player.x;
+		var tY = ((mouseY - player.y) / 6) + player.y;
+
+		enemyBullets.forEach(bulletKill, this, true);
+
+		//enemies.forEach(drawLines, this, true, this.bitmap);
+
+		if(numEnemies == 6 &&  stairs === null)
+		{
+			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
+			stairs.anchor.set(0.5);
+			game.physics.arcade.enable(stairs);
+
+			var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
+			game.add.existing(arrow);
+		}
 
 		if(!lowspec)
 		{
@@ -412,7 +606,10 @@ Final.Dead.prototype =
 
 function bulletKill(bullet)
 {
-	bullet.destroy();
+	var intersects = bigRoom.walls.getTiles(bullet.x, bullet.y, 4, 4, true);
+
+	if(intersects.length > 0)
+		bullet.destroy();
 }
 
 function deadFun(player, bullet)
@@ -429,21 +626,13 @@ function deadFun(player, bullet)
 function drawLines(gunGuy, bitmap)
 {
 	gunGuy.graphics.clear();
-	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
-	//gunGuy.graphics.lineStyle(2, 0xffffff, 1);
+	gunGuy.graphics.moveTo(gunGuy.lessLine.start.x, gunGuy.lessLine.start.y);
 	gunGuy.graphics.lineStyle(2, 0xffffff, .75);	
 
 	gunGuy.graphics.lineTo(gunGuy.lessLine.end.x, gunGuy.lessLine.end.y);
 
-	gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
+	gunGuy.graphics.moveTo(gunGuy.moreLine.start.x, gunGuy.moreLine.start.y);
 	gunGuy.graphics.lineTo(gunGuy.moreLine.end.x, gunGuy.moreLine.end.y);
-
-	//gunGuy.graphics.moveTo(gunGuy.x, gunGuy.y);
-	if(gunGuy.inCamera)
-	{
-		//gunGuy.graphics.lineStyle(2, 0x2779B6, .5);	
-		//gunGuy.graphics.arc(gunGuy.x, gunGuy.y, gunGuy.lineDist, 0, Phaser.Math.degToRad(360), false, 60);
-	}
 }
 function startGame()
 {
@@ -474,5 +663,6 @@ game.state.add('MainMenu', Final.MainMenu);
 game.state.add('Tutorial', Final.Tutorial);
 game.state.add('Transition', Final.Transition);
 game.state.add('Play', Final.Play);
+game.state.add('Upper', Final.Upper);
 game.state.add('Dead', Final.Dead);
 game.state.start('Boot');
