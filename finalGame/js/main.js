@@ -39,16 +39,17 @@ Final.Boot.prototype =
 		console.log('Boot: preload');
 		this.load.path = './assets/img/'; //set initial load path
 		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
-		this.load.image('back', 'back.png');
+		this.load.image('titleBG', 'Title Screen_NoText.png');
+		//this.load.image('back', 'back.png');
 		this.load.image('pBlood', 'pBlood.png');
-		this.load.image('BGTile', 'BGTile.png');
+		//this.load.image('BGTile', 'BGTile.png');
 		this.load.audio('music', '../audio/Electro_Zombies.mp3');
 		this.load.audio('shot', '../audio/shot.wav');
 		this.load.audio('playerShot', '../audio/playerShot.wav');
 		this.load.audio('turretShot', '../audio/turretShot.wav');
 
 		this.load.path = './assets/tiles/Athene/';
-		this.load.tilemap('tutorial', 'tutorial.json', null, Phaser.Tilemap.TILED_JSON);
+		this.load.tilemap('tutorial', '/upper/tutorial.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('startRoom', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('room1', 'room1.json', null, Phaser.Tilemap.TILED_JSON);
@@ -99,19 +100,29 @@ Final.MainMenu.prototype =
 	{
 		console.log('Boot: create');
 		this.game.canvas.style.cursor = "crosshair";
+		game.add.image(0, 0, 'titleBG');
 		var startMusic = this.add.audio('music');
 		//startMusic.play('', 0, .25, true);
-		button = game.add.button(game.world.centerX - 55, game.world.centerY - 9,
-									'atlas', startGame, this, 'startHover', 'start', 'startHover');
-		var button2 = game.add.button(game.world.centerX - 55, game.world.centerY - 9 + 18,
-									'atlas', startTutorial, this, 'controlsHover', 'controls', 'controlsHover');
-		var button3 = game.add.button(game.world.centerX - 55, game.world.centerY - 9 + 36,
-									'atlas', toggleFPS, this, 'controlsHover', 'controls', 'controlsHover');
+		button = game.add.button(game.world.width/5, 665,
+									'atlas', startGame, this, 'Quick Start', 'Quick Start_Blank', 'Quick Start');
+		button.anchor.set(0.5, 0.5);
 
-		var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
+		var button2 = game.add.button(game.world.width*(2/5), 665,
+									'atlas', startTutorial, this, 'Start', 'Start_Blank', 'Start');
+		button2.anchor.set(0.5, 0.5);
+
+		var button3 = game.add.button(game.world.width*(3/5), 665,
+									'atlas', toggleFPS, this, 'Low Spec Mode', 'Low Spec Mode_Blank', 'Low Spec Mode');
+		button3.anchor.set(0.5, 0.5);
+
+		var button4 = game.add.button(game.world.width*(4/5), 665,
+									'atlas', startGame, this, 'Credits', 'Credits_Blank', 'Credits');
+		button4.anchor.set(0.5, 0.5);
+
+		/*var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
 		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
 		dude.animations.play('rightIdle');
-		dude.anchor.set(.5);
+		dude.anchor.set(.5);*/
 
 		low = game.add.sprite(game.world.centerX + 100, game.world.centerY, 'atlas', 'player');
 		low.alpha = 0;
@@ -146,10 +157,9 @@ Final.Tutorial.prototype =
 	{
 		console.log('Tutorial: create');
 		bigRoom = game.add.tilemap('tutorial');
-		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
+		bigRoom.addTilesetImage('tileset', 'datGoodSheetUp', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
 		bigRoom.walls = bigRoom.createLayer('Walls');
-		bigRoom.decorations = bigRoom.createLayer('Decorations');
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
@@ -212,13 +222,19 @@ Final.Tutorial.prototype =
 			else
 				puddle = game.add.sprite(352 - 128, 17*32, 'atlas', 'puddle2');
 
-			var corpse = new Corpse(game, 1, 0, 352 - 128, 17*32);
+			/*var corpse = new Corpse(game, 1, 0, 352 - 128, 17*32);
 			game.add.existing(corpse);
 			corpses.add(corpse);
 
 			puddle.anchor.set(0.5, 0.5);
 			game.physics.arcade.enable(puddle);
-			bloods.add(puddle);
+			bloods.add(puddle);*/
+
+			var enemy = new Enemy(352 + 128, 17*32, game, 'gunGuy');
+			game.add.existing(enemy);
+			enemies.add(enemy);
+			enemy.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 6, '', 2), 3, true);
+			enemy.animations.play('idle');
 
 			text.destroy();
 			text = game.add.text(32, 32, '\"Hold left click and aim with the mouse to fire the gun, but be careful: ' +  
@@ -230,9 +246,11 @@ Final.Tutorial.prototype =
 		{
 			line = 4;
 			text.destroy();
-			var enemy = new Enemy(352 + 128, 17*32, game, 'gunGuy');
+			var enemy = new Enemy(352 - 64, 17*32, game, 'gunGuy');
 			game.add.existing(enemy);
 			enemies.add(enemy);
+			enemy.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 6, '', 2), 3, true);
+			enemy.animations.play('idle');
 
 			text = game.add.text(32, 32, '\"You move quicker and run out of blood slower when standing on blood.\"' +  
 				'\n\"You can also stealth kill an enemy by pressing F when near them and not seen.\"', textStyle);
@@ -365,7 +383,6 @@ Final.Play.prototype =
 
 		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
-		console.log(numEnemies);
 	},
 	update: function()
 	{
@@ -400,7 +417,7 @@ Final.Play.prototype =
 
 		enemyBullets.forEach(bulletKill, this, true);
 
-		if(numEnemies == 11 &&  stairs === null)
+		if(numEnemies <= 0 &&  stairs === null)
 		{
 			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
 			stairs.anchor.set(0.5);
@@ -475,9 +492,7 @@ Final.Upper.prototype =
 
 		enemies = game.add.group();
 		enemyBullets = game.add.group();
-		console.log('pre redner');
 		renderRooms(graph, bigRoom, true);
-		console.log(graph);
 		
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
@@ -512,7 +527,6 @@ Final.Upper.prototype =
 
 		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
-		console.log(numEnemies);
 	},
 	update: function()
 	{
@@ -547,7 +561,7 @@ Final.Upper.prototype =
 
 		//enemies.forEach(drawLines, this, true, this.bitmap);
 
-		if(numEnemies == 6 &&  stairs === null)
+		if(numEnemies <= 0 &&  stairs === null)
 		{
 			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
 			stairs.anchor.set(0.5);
@@ -598,7 +612,6 @@ Final.Dead.prototype =
 	{
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
-			console.log("down!");
 			game.state.start('Play');
 		}
 	}
@@ -642,14 +655,20 @@ function startTutorial()
 {
 	game.state.start('Tutorial');
 }
-function toggleFPS()
+function toggleFPS(button)
 {
 	lowspec = !lowspec;
 
 	if(lowspec)
+	{
 		this.time.desiredFps = 30;
+		button.setFrames('Low Spec Mode', 'Low Spec Mode', 'Low Spec Mode');
+	}
 	else
+	{
 		this.time.desiredFps = 60;
+		button.setFrames('Low Spec Mode', 'Low Spec Mode_Blank', 'Low Spec Mode');
+	}
 
 	console.log('desired fps: ' + this.time.desiredFps + 
 				'\nlowspec: '  + lowspec);

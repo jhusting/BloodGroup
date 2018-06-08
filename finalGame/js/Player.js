@@ -200,7 +200,11 @@ Player.prototype.update = function()
 		this.shootingBar.alpha = 1;
 		this.shootingPart.alpha = 1;
 
-		this.shootingPart.scale.set( 1, (this.shotCounter/(game.time.desiredFps/3)) * 6 );
+		var scale = this.shotCounter/(game.time.desiredFps/3);
+
+		if(scale > 1)
+			scale = 1;
+		this.shootingPart.scale.set(1, scale);
 
 		if(this.shotCounter == (game.time.desiredFps/3))
 		{

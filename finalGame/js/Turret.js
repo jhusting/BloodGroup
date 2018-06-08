@@ -16,15 +16,15 @@ function Turret(x, y, game)
 	this.deadly = false;
 	this.pickDirection(bigRoom.walls);
 
-	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
-	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('pl_LeftIdle', 1, 2, '', 2), 3, true);
-	this.animations.add('upIdle', Phaser.Animation.generateFrameNames('pl_UpRun', 2, 12, '', 2), 3, true);
-	this.animations.add('downIdle', Phaser.Animation.generateFrameNames('pl_DownRun', 2, 12, '', 2), 3, true);
+	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('TurretRightIdle', 1, 2, '', 2), 3, true);
+	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('TurretLeftIdle', 1, 2, '', 2), 3, true);
+	this.animations.add('upIdle', Phaser.Animation.generateFrameNames('TurretUpIdle', 1, 2, '', 2), 3, true);
+	this.animations.add('downIdle', Phaser.Animation.generateFrameNames('TurretDownIdle', 1, 2, '', 2), 3, true);
 
-	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('pl_RightRun', 2, 12, '', 2), 3, true);
-	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('pl_LeftRun', 2, 12, '', 2), 3, true);
-	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('EnemyUpShoot', 1, 2, '', 2), 3, true);
-	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('EnemyDownShoot', 1, 2, '', 2), 3, true);
+	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('TurretRightShoot', 1, 7, '', 2), 20, false);
+	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('TurretLeftShoot', 1, 7, '', 2), 20, false);
+	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('TurretUpShoot', 1, 7, '', 2), 20, false);
+	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('TurretDownShoot', 1, 7, '', 2), 20, false);
 }
 
 Turret.prototype = Object.create(Phaser.Sprite.prototype);
@@ -142,7 +142,7 @@ Turret.prototype.update = function()
 			}
 			else if(this.seen !== null)
 			{
-				this.shooting = false;
+				//this.shooting = false;
 				this.seen.destroy();
 				this.seen = null;
 			}
@@ -161,7 +161,8 @@ Turret.prototype.update = function()
 		else
 			this.X.alpha = 0;
 
-		this.pickAnimation();
+		if(!this.shooting)
+			this.pickAnimation();
 		this.draw();
 		this.bringToTop();
 	}
@@ -171,31 +172,19 @@ Turret.prototype.pickAnimation = function()
 {
 	if(this.middleDeg == 0)
 	{
-		if(!this.shooting)
-			this.animations.play('rightIdle');
-		else
-			this.animations.play('rightShoot');
+		this.animations.play('rightIdle');
 	}
 	else if(this.middleDeg == 90)
 	{
-		if(!this.shooting)
-			this.animations.play('downIdle');
-		else
-			this.animations.play('downShoot');
+		this.animations.play('downIdle');
 	}
 	else if(this.middleDeg == 180)
 	{
-		if(!this.shooting)
-			this.animations.play('leftIdle');
-		else
-			this.animations.play('leftShoot');
+		this.animations.play('leftIdle');
 	}
 	else if(this.middleDeg == 270)
 	{
-		if(!this.shooting)
-			this.animations.play('upIdle');
-		else
-			this.animations.play('upShoot');
+		this.animations.play('upIdle');
 	}
 };
 
@@ -210,27 +199,49 @@ Turret.prototype.seenFunction = function()
 	if(!this.shooting && !player.dead)
 	{
 		this.shooting = true;
-		var timer = game.time.create(true);	
+		var timer = game.time.create(true);
 
-		this.lazerLine = this.middleLine;
+		if(this.middleDeg == 0)
+		{
+			this.lazerLine = new Phaser.Line(this.x + 14, this.y - 7, this.x + 1000, this.y - 7);
+			this.animations.play('rightShoot');
+		}
+		else if(this.middleDeg == 90)
+		{
+			this.lazerLine = new Phaser.Line(this.x, this.y + 6, this.x, this.y + 1000);	
+			this.animations.play('downShoot');
+		}
+		else if(this.middleDeg == 180)
+		{
+			this.lazerLine = new Phaser.Line(this.x - 14, this.y - 8, this.x - 1000, this.y - 7);	
+			this.animations.play('leftShoot');
+		}
+		else if(this.middleDeg == 270)
+		{
+			this.lazerLine = new Phaser.Line(this.x, this.y - 16, this.x, this.y - 1000);	
+			this.animations.play('upShoot');
+		}
 
 		timer.add(200, function() {
-			this.thiccness = 3;
+			this.thiccness = 1;
 		}, this);
 		timer.add(220, function() {
-			this.thiccness = 5;
+			this.thiccness = 2;
 		}, this);
 		timer.add(240, function() {
-			this.thiccness = 7;
+			this.thiccness = 4;
 			this.deadly = true;
 		}, this);
 		timer.add(260, function() {
-			this.thiccness = 25;
+			this.thiccness = 8;
+		}, this);
+		timer.add((7/20)*1000, function() {
+			this.shooting = false;
 		}, this);
 		timer.add(800, function() {
 			this.lazerLine = null;
-			this.thiccness = 3;
-			this.shooting = false;
+			this.thiccness = 1;
+			//this.shooting = false;
 			this.deadly = false;
 		}, this);
 

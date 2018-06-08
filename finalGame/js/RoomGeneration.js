@@ -141,7 +141,6 @@ function renderRooms(graph, map, up)
 				{
 					numEnPerRoom += Math.random()*1.5;
 					numEnPerRoom--;
-					console.log(numEnPerRoom);
 				}
 
 				for(var n = 0; arr.length > 0 && n < numEnPerRoom; n++)

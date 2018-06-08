@@ -19,10 +19,10 @@ function GunGuy(x, y, game)
 	this.animations.add('upRun', Phaser.Animation.generateFrameNames('EnemyUpRun', 1, 4, '', 2), 3, true);
 	this.animations.add('downRun', Phaser.Animation.generateFrameNames('EnemyDownRun', 2, 4, '', 2), 3, true);
 
-	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('EnemyRightShoot', 1, 4, '', 2), 5, true);
-	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('EnemyLeftShoot', 1, 4, '', 2), 5, true);
-	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('EnemyUpShoot', 1, 2, '', 2), 5, true);
-	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('EnemyDownShoot', 1, 2, '', 2), 5, true);
+	this.animations.add('rightShoot', Phaser.Animation.generateFrameNames('EnemyRightShoot', 1, 4, '', 2), 8, true);
+	this.animations.add('leftShoot', Phaser.Animation.generateFrameNames('EnemyLeftShoot', 1, 4, '', 2), 8, true);
+	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('EnemyUpShoot', 1, 2, '', 2), 8, true);
+	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('EnemyDownShoot', 1, 2, '', 2), 8, true);
 
 	this.shooting = false;
 }
@@ -162,27 +162,45 @@ GunGuy.prototype.pickAnimation = function()
 {
 	if(this.body.velocity.x > 0 || (this.body.velocity.x > 0 && this.body.velocity.y > 0)) //SE
 	{
-		this.animations.play('rightRun');
+		if(!this.shooting)
+			this.animations.play('rightRun');
+		else
+			this.animations.play('rightShoot');
 	}
 	else if(this.body.velocity.x > 0 && this.body.velocity.y < 0) //NE
 	{
-		this.animations.play('rightRun');
+		if(!this.shooting)
+			this.animations.play('rightRun');
+		else
+			this.animations.play('rightShoot');
 	}
 	else if(this.body.velocity.x < 0 || (this.body.velocity.x < 0 && this.body.velocity.y < 0)) //NW
 	{
-		this.animations.play('leftRun');
+		if(!this.shooting)
+			this.animations.play('leftRun');
+		else
+			this.animations.play('leftShoot');
 	}
 	else if(this.body.velocity.x < 0 && this.body.velocity.y > 0) //SW
 	{
-		this.animations.play('leftRun');
+		if(!this.shooting)
+			this.animations.play('leftRun');
+		else
+			this.animations.play('leftShoot');
 	}
 	else if(this.body.velocity.y > 0)
 	{
-		this.animations.play('downRun');
+		if(!this.shooting)
+			this.animations.play('downRun');
+		else
+			this.animations.play('downShoot');
 	}
 	else if(this.body.velocity.y < 0)
 	{
-		this.animations.play('upRun');
+		if(!this.shooting)
+			this.animations.play('upRun');
+		else
+			this.animations.play('upShoot');
 	}
 	else
 	{
