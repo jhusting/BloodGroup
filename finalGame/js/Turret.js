@@ -8,14 +8,16 @@ function Turret(x, y, game)
 
 	this.turnCounter = 0;
 	this.turnLine = null;
-	//this.turnDeg = null;
 
-	this.lazerLine = null;
-	this.shooting = false;
-	this.thiccness = 2;
-	this.deadly = false;
+	this.lazerLine = null; //line that controls the lazer
+	this.shooting = false; //whether or not the enemy is currently shooting
+	this.thiccness = 2; //thickness of the lazer
+	this.deadly = false; //whether or not the lazer is active
 	this.pickDirection(bigRoom.walls);
 
+	this.shotSound = game.add.audio('turretShot');
+
+	//setup animations
 	this.animations.add('rightIdle', Phaser.Animation.generateFrameNames('TurretRightIdle', 1, 2, '', 2), 3, true);
 	this.animations.add('leftIdle', Phaser.Animation.generateFrameNames('TurretLeftIdle', 1, 2, '', 2), 3, true);
 	this.animations.add('upIdle', Phaser.Animation.generateFrameNames('TurretUpIdle', 1, 2, '', 2), 3, true);
@@ -42,11 +44,13 @@ Turret.prototype.update = function()
 		//Convert playerline angle to degrees from radians and normalize to 0-360 instead of 0-180 and 0-(-180)
 		this.playerAng = normRad(this.playerLine.angle);
 
+		//checks if playerLine is intersecting a tile
 		var intersects = getClosestPoint(this.playerLine, bigRoom.walls, 3);
 
+		//if intersects > 1, the player is behind a wall
 		this.playerBehind = (intersects !== null);
 
-		if(this.turnCounter >= game.time.desiredFps * 4)
+		if(this.turnCounter >= game.time.desiredFps * 4) //if the enemy hasn't changed direction in 4 seconds
 		{
 			this.turnCounter = 0;
 			this.pickDirection(bigRoom.walls);
@@ -61,7 +65,8 @@ Turret.prototype.update = function()
 
 		this.middleLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.middleDeg), this.lineDist);
 		
-		if(this.middleDeg == 0)
+		//makes lines depending on direction enemy is facing
+		if(this.middleDeg == 0) 
 		{
 			this.lessLine = new Phaser.Line(this.x + 16, this.y - 14, this.x + 1000, this.y - 14);
 			this.moreLine = new Phaser.Line(this.x + 16, this.y + 14, this.x + 1000, this.y + 14);
@@ -82,6 +87,7 @@ Turret.prototype.update = function()
 			this.moreLine = new Phaser.Line(this.x + 14, this.y - 16, this.x + 14, this.y - 1000);
 		}
 
+		//checks if lessline is intersecting with a tile
 		if(!lowspec)
 			var point = getClosestPoint(this.lessLine, bigRoom.walls, 5);
 		else
@@ -91,16 +97,17 @@ Turret.prototype.update = function()
 			this.lessLine = new Phaser.Line(this.lessLine.start.x, this.lessLine.start.y, point.x, point.y);
 		}
 
+		//check if moreLine is intersecting a tile
 		if(!lowspec)
 			point = getClosestPoint(this.moreLine, bigRoom.walls, 5);
 		else
 			point = getClosestPoint(this.moreLine, bigRoom.walls, 8);
-
 		if(point != null)
 		{
 			this.moreLine = new Phaser.Line(this.moreLine.start.x, this.moreLine.start.y, point.x, point.y);
 		}
 
+		//check if turnLine is intersecting a tile
 		if(this.turnLine !== null)
 		{
 			if(!lowspec)
@@ -114,8 +121,10 @@ Turret.prototype.update = function()
 			}
 		}
 
+		//if the player isn't behind a wall, and is close enough to the enemy
 		if( !this.playerBehind && this.playerLine.length < this.lineDist )
 		{
+			//check if the player is inside the enemy LOS 
 			if(	this.middleDeg == 0 && 
 				player.x > this.x && player.y >= this.y - 16 &&
 				player.y <= this.y + 16)
@@ -142,7 +151,6 @@ Turret.prototype.update = function()
 			}
 			else if(this.seen !== null)
 			{
-				//this.shooting = false;
 				this.seen.destroy();
 				this.seen = null;
 			}
@@ -154,6 +162,7 @@ Turret.prototype.update = function()
 			this.seen = null;
 		}
 
+		//if the player is less than 64 pixels away, and isn't seen, show the X for melee
 		if(this.playerLine.length < 64 && this.seen === null)
 		{
 			Enemy.prototype.melee.call(this);
@@ -168,6 +177,7 @@ Turret.prototype.update = function()
 	}
 };
 
+//picks the animation for the turret
 Turret.prototype.pickAnimation = function()
 {
 	if(this.middleDeg == 0)
@@ -188,6 +198,7 @@ Turret.prototype.pickAnimation = function()
 	}
 };
 
+//Handles when the player has been seen
 Turret.prototype.seenFunction = function()
 {
 	if(this.seen == null)
@@ -196,11 +207,11 @@ Turret.prototype.seenFunction = function()
 	this.seenX = player.x;
 	this.seenY = player.y;
 
-	if(!this.shooting && !player.dead)
+	if(!this.shooting && !player.dead) //if you aren't shooting and the player isn't dead
 	{
-		this.shooting = true;
+		this.shooting = true; //start shootin!
 		var timer = game.time.create(true);
-
+		//draws the lazer line depending on which direction it's facing
 		if(this.middleDeg == 0)
 		{
 			this.lazerLine = new Phaser.Line(this.x + 14, this.y - 7, this.x + 1000, this.y - 7);
@@ -222,6 +233,7 @@ Turret.prototype.seenFunction = function()
 			this.animations.play('upShoot');
 		}
 
+		//sets up a timer that changes the thickness of the lazer line, making it appear to shoot
 		timer.add(200, function() {
 			this.thiccness = 1;
 		}, this);
@@ -233,6 +245,7 @@ Turret.prototype.seenFunction = function()
 			this.deadly = true;
 		}, this);
 		timer.add(260, function() {
+			this.shotSound.play('', 0, .05, false);
 			this.thiccness = 8;
 		}, this);
 		timer.add((7/20)*1000, function() {
@@ -258,6 +271,7 @@ Turret.prototype.seenFunction = function()
 	}
 };
 
+//draws all the LOS and lazer lines
 Turret.prototype.draw = function()
 {
 	this.graphics.clear();
@@ -284,6 +298,7 @@ Turret.prototype.draw = function()
 	}
 };
 
+//picks the next direction it will face
 Turret.prototype.pickDirection = function(layer)
 {
 	var testX = this.x;

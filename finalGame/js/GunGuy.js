@@ -13,6 +13,7 @@ function GunGuy(x, y, game)
 
 	this.discovered = true;
 
+	//setup animations
 	this.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 6, '', 2), 3, true);
 	this.animations.add('rightRun', Phaser.Animation.generateFrameNames('EnemyRightRun', 1, 5, '', 2), 3, true);
 	this.animations.add('leftRun', Phaser.Animation.generateFrameNames('EnemyLeftRun', 1, 5, '', 2), 3, true);
@@ -24,7 +25,7 @@ function GunGuy(x, y, game)
 	this.animations.add('upShoot', Phaser.Animation.generateFrameNames('EnemyUpShoot', 1, 2, '', 2), 8, true);
 	this.animations.add('downShoot', Phaser.Animation.generateFrameNames('EnemyDownShoot', 1, 2, '', 2), 8, true);
 
-	this.shooting = false;
+	this.shooting = false; //if the enemy is currently shooting
 }
 
 GunGuy.prototype = Object.create(Phaser.Sprite.prototype);
@@ -32,26 +33,20 @@ GunGuy.prototype.constructor = GunGuy;
 
 GunGuy.prototype.update = function ()
 {
-	/*if(this.inCamera)
-		this.discovered = true;*/
-
 	this.X.x = this.x;
 	this.X.y = this.y;
-	//console.log(this.exists);
-	/*if(lowspec && !this.inCamera)
-	{
-		this.body.velocity.x = 0;
-		this.body.velocity.y = 0;
-	}
-	else */if(this.discovered)
+
+	if(this.discovered)
 	{
 		//draw a line from the center of this sprite to the player
 		this.playerLine = new Phaser.Line(this.x, this.y, player.x, player.y);
 		//Convert playerline angle to degrees from radians and normalize to 0-360 instead of 0-180 and 0-(-180)
 		this.playerAng = normRad(this.playerLine.angle);
 
+		//checks if playerLine is intersecting a tile
 		var intersects = getClosestPoint(this.playerLine, bigRoom.walls, 3);
 
+		//if intersects > 1, the player is behind a wall
 		this.playerBehind = (intersects !== null);
 
 		if(this.seen !== null)
@@ -60,10 +55,11 @@ GunGuy.prototype.update = function ()
 			this.seen.y = this.y - 48;
 		}
 
-		if(this.seenX === null && this.path.length > 1)
+		if(this.seenX === null && this.path.length > 1) //if the player isn't seen, and hte path exists, move along the path
 			moveAlongPath(this);
 		else
 		{
+			//if the player is seen, or has been seen, move towards the spot they were seen at
 			if(Phaser.Math.distance(this.x, this.y, this.seenX, this.seenY) > 3)
 				game.physics.arcade.moveToXY(this, this.seenX, this.seenY, 60);
 			else
@@ -75,11 +71,9 @@ GunGuy.prototype.update = function ()
 				this.body.velocity.x = 0;
 				this.body.velocity.y = 0;
 
-				if(this.seenFrames === 180)
+				if(this.seenFrames === game.time.desiredFps*3) //if the player hasn't been seen for 3 seconds
 				{
 					this.seenFrames = 0;
-					//this.seen.destroy();
-					//this.seen = null;
 
 					this.seenX = null;
 					this.seenY = null;
@@ -94,10 +88,12 @@ GunGuy.prototype.update = function ()
 		this.lessDeg = normDeg(this.currMidDeg - 30);
 		this.moreDeg = normDeg(this.currMidDeg + 30);
 
+		//calculates the lines
 		this.middleLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.currMidDeg), this.lineDist);
 		this.lessLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.lessDeg), this.lineDist);
 		this.moreLine.fromAngle(this.x, this.y, Phaser.Math.degToRad(this.moreDeg), this.lineDist);
 
+		//checks if lessline is intersecting with a tile
 		if(!lowspec)
 			var point = getClosestPoint(this.lessLine, bigRoom.walls, 5);
 		else
@@ -107,18 +103,20 @@ GunGuy.prototype.update = function ()
 			this.lessLine = new Phaser.Line(this.x, this.y, point.x, point.y);
 		}
 
+		//check if moreLine is intersecting a tile
 		if(!lowspec)
 			point = getClosestPoint(this.moreLine, bigRoom.walls, 5);
 		else
 			point = getClosestPoint(this.moreLine, bigRoom.walls, 8);
-
 		if(point != null)
 		{
 			this.moreLine = new Phaser.Line(this.x, this.y, point.x, point.y);
 		}
 
+		//if the player isn't behind a wall, and is close enough to the enemy
 		if( !this.playerBehind && this.playerLine.length < this.lineDist )
 		{
+			//these check if the player line is contained within moreline and lessline
 			if(this.moreDeg < 60 && (this.playerAng > this.lessDeg || this.playerAng < this.moreDeg))
 				seenFunction(this);
 			else if(this.moreDeg >= 60 && (this.playerAng > this.lessDeg && this.playerAng < this.moreDeg))
@@ -137,6 +135,7 @@ GunGuy.prototype.update = function ()
 			this.seen = null;
 		}
 
+		//this calculates the middle line moving towards it's target angle
 		if(Phaser.Math.difference(this.currMidDeg, this.middleDeg) < 5 || 
 			Phaser.Math.difference(this.currMidDeg, this.middleDeg + 360) < 5)
 		{
@@ -145,6 +144,7 @@ GunGuy.prototype.update = function ()
 		this.currMidDeg += turnTowards(this.currMidDeg, this.middleDeg);
 		this.currMidDeg = normDeg(this.currMidDeg);
 
+		//if the player is less than 64 pixels away, and isn't seen, show the X for melee
 		if(this.playerLine.length < 64 && this.seen === null)
 		{
 			Enemy.prototype.melee.call(this);
@@ -158,6 +158,7 @@ GunGuy.prototype.update = function ()
 	}
 }
 
+//picks the animation for what the enemy is doing right now
 GunGuy.prototype.pickAnimation = function()
 {
 	if(this.body.velocity.x > 0 || (this.body.velocity.x > 0 && this.body.velocity.y > 0)) //SE
@@ -208,6 +209,7 @@ GunGuy.prototype.pickAnimation = function()
 	}
 };
 
+//draws the lines for this enemies LOS
 GunGuy.prototype.draw = function()
 {
 	this.graphics.clear();

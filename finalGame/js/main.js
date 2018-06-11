@@ -1,6 +1,3 @@
-//Final Proto by Josh Husting
-//CMPM 120
-//
 //Music: "Electro Zombies" by Purple Planet Music
 //http://www.purple-planet.com/dark-backgrounds/4584537439
 //Machine gun Gunshot Sound: "Gun Shot.wav" by Bird_man
@@ -37,17 +34,26 @@ Final.Boot.prototype =
 	preload: function()
 	{
 		console.log('Boot: preload');
+
+		//load font
+		this.load.path = './assets/fonts/';
+		this.load.bitmapFont('pixelFont', 'font.png', 'font.fnt', null);
+
+		//load all images and sprite sheets
 		this.load.path = './assets/img/'; //set initial load path
 		this.load.atlas('atlas', 'spritesheet.png', 'sprites.json');
 		this.load.image('titleBG', 'Title Screen_NoText.png');
-		//this.load.image('back', 'back.png');
+		this.load.image('winBG', 'WinScreen_1.png');
+		this.load.image('deathBG', 'Death_Screen.png');
 		this.load.image('pBlood', 'pBlood.png');
-		//this.load.image('BGTile', 'BGTile.png');
+
+		//load all audio
 		this.load.audio('music', '../audio/Electro_Zombies.mp3');
 		this.load.audio('shot', '../audio/shot.wav');
 		this.load.audio('playerShot', '../audio/playerShot.wav');
 		this.load.audio('turretShot', '../audio/turretShot.wav');
 
+		//load tilesets and tilemaps for first level
 		this.load.path = './assets/tiles/Athene/';
 		this.load.tilemap('tutorial', '/upper/tutorial.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('bigRoom', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
@@ -60,6 +66,7 @@ Final.Boot.prototype =
 		this.load.tilemap('room6', 'room6.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.spritesheet('datGoodSheet', 'tileset.png', 32, 32);
 
+		//load tilesets and tilemaps for second level
 		this.load.path = './assets/tiles/Athene/upper/';
 		this.load.tilemap('bigRoomUp', 'bigRoom.json', null, Phaser.Tilemap.TILED_JSON);
 		this.load.tilemap('startRoomUp', 'startRoom.json', null, Phaser.Tilemap.TILED_JSON);
@@ -75,7 +82,8 @@ Final.Boot.prototype =
 	},
 	create: function()
 	{
-		this.time.desiredFps = 45;
+		var startMusic = this.add.audio('music');
+		startMusic.play('', 0, .25, true);
 	}, 
 	update: function()
 	{
@@ -89,20 +97,20 @@ Final.MainMenu.prototype =
 {
 	init: function() 
 	{
-		console.log('Boot: init');
+		console.log('MainMenu: init');
 	},
 	
 	preload: function() 
 	{
-		console.log('Boot: preload');
+		console.log('MainMenu: preload');
 	},
 	create: function()
 	{
-		console.log('Boot: create');
+		console.log('MainMenu: create');
 		this.game.canvas.style.cursor = "crosshair";
 		game.add.image(0, 0, 'titleBG');
-		var startMusic = this.add.audio('music');
-		//startMusic.play('', 0, .25, true);
+
+		//Add buttons for switching states
 		button = game.add.button(game.world.width/5, 665,
 									'atlas', startGame, this, 'Quick Start', 'Quick Start_Blank', 'Quick Start');
 		button.anchor.set(0.5, 0.5);
@@ -116,23 +124,55 @@ Final.MainMenu.prototype =
 		button3.anchor.set(0.5, 0.5);
 
 		var button4 = game.add.button(game.world.width*(4/5), 665,
-									'atlas', startGame, this, 'Credits', 'Credits_Blank', 'Credits');
+									'atlas', startCredits, this, 'Credits', 'Credits_Blank', 'Credits');
 		button4.anchor.set(0.5, 0.5);
-
-		/*var dude = game.add.sprite(game.world.centerX, game.world.centerY + 225, 'atlas', 'pl_RightIdle01');
-		dude.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 3, true);
-		dude.animations.play('rightIdle');
-		dude.anchor.set(.5);*/
-
-		low = game.add.sprite(game.world.centerX + 100, game.world.centerY, 'atlas', 'player');
-		low.alpha = 0;
 	}, 
 	update: function()
 	{
-		if(lowspec)
-			low.alpha = 1;
-		else
-			low.alpha = 0;
+	}
+}
+
+Final.Credits = function(){ var button; };
+
+Final.Credits.prototype = 
+{
+	init: function() 
+	{
+		console.log('Credits: init');
+	},
+	
+	preload: function() 
+	{
+		console.log('Credits: preload');
+	},
+	create: function()
+	{
+		console.log('Credits: create');
+
+		var text = game.add.bitmapText(32, 32, 'pixelFont', 
+				'Music' + 
+				'\n\"Electro Zombies\" by Purple Planet Music' + 
+				'\nhttp://www.purple-planet.com/dark-backgrounds/4584537439' + 
+				'\n\nSounds' + 
+				'\nMachine Gun Enemy Sound: \"Gun Shot.wav\" by Bird_man' + 
+				'\nhttps://freesound.org/people/Bird_man/sounds/275151/' + 
+				'\nPlayer Laser sound: \"Laser shot silenced\" by buboproducer' +
+				'\nhttps://freesound.org/people/bubaproducer/sounds/151022/' + 
+				'\nTurret lazer sound: \"laser\" by fins' + 
+				'\nhttps://freesound.org/people/fins/sounds/191594/' + 
+				'\n\nEnvironmental Art' + 
+				'\nAthene Yip\nJosh Husting' +
+				'\n\nCharacter Art' + 
+				'\nAaron Miranda' + 
+				'\n\nProgramming' + 
+				'\nJosh Husting' + 
+				'\n\nPress SPACE to return to the main menu. . .', 20);
+	}, 
+	update: function()
+	{
+		this.game.canvas.style.cursor = "crosshair";
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+			game.state.start('MainMenu');
 	}
 }
 
@@ -156,6 +196,10 @@ Final.Tutorial.prototype =
 	create: function()
 	{
 		console.log('Tutorial: create');
+
+		//setup main tilemap
+		//this is the only tilemap that will be displayed, we will load individual rooms and 
+		//copy them to this tilemap when generating the world
 		bigRoom = game.add.tilemap('tutorial');
 		bigRoom.addTilesetImage('tileset', 'datGoodSheetUp', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
@@ -163,6 +207,7 @@ Final.Tutorial.prototype =
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
+		//set the wall layer to collide
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 
 		player = new Player(game, 'player');
@@ -177,19 +222,11 @@ Final.Tutorial.prototype =
 		enemies = game.add.group();
 		numEnemies = 0;
 
-		let textStyle = 
-		{
-			font: 'ProggyTinyTTSZ',
-			fontSize: 32,
-			fill: '#ffffff',
-			wordWrap: true,
-			wordWrapWidth: (700-64),
-			align: 'left'
-		};
-
+		//Set up first line of tutorial text
 		line = 1;
-		text = game.add.text(32, 32, '\"Alright #120, let\'s continue with the tests.\"' + 
-					'\n\"Let\'s have you move around for me.\" (WASD)', textStyle);
+		text = game.add.bitmapText(32, 32, 'pixelFont', '\"Alright One-Twenty, let\'s continue with the tests.\"' + 
+					'\n\"Let\'s have you move around for me.\"' + 
+					'\n\nWASD to move.', 20);
 		lineCounter = 0;
 
 		player.x = 352;
@@ -205,15 +242,18 @@ Final.Tutorial.prototype =
 			game.input.keyboard.isDown(Phaser.Keyboard.A) || 
 			game.input.keyboard.isDown(Phaser.Keyboard.D)))
 		{
+			//Setup second line of tutorial text
 			line = 2;
 			text.destroy();
-			text = game.add.text(32, 32, '\"The gun we\'ve outfitted you is dangerous: firing the weapon draws all ' +  
-				'the blood from body and propels it out the barrel. Luckily, since you are a blood imp, you seem to ' +
-				'have a lot of blood.\"' + '\n\nPress space to continue. . .', textStyle);
+			text = game.add.bitmapText(32, 32, 'pixelFont', '\"The gun we\'ve outfitted you with is dangerous: firing the weapon' + 
+				'\ndraws all the blood from body and propels it out the barrel.' + 
+				'\n\n\"Luckily, since you are a blood imp, you seem to have a lot of' + 
+				'\nblood.\"' + '\n\nPress SPACE to continue. . .', 20);
 		}
 
 		if(line == 2 && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
+			//Setup third line of tutorial text
 			line = 3;
 
 			var puddle;
@@ -222,14 +262,7 @@ Final.Tutorial.prototype =
 			else
 				puddle = game.add.sprite(352 - 128, 17*32, 'atlas', 'puddle2');
 
-			/*var corpse = new Corpse(game, 1, 0, 352 - 128, 17*32);
-			game.add.existing(corpse);
-			corpses.add(corpse);
-
-			puddle.anchor.set(0.5, 0.5);
-			game.physics.arcade.enable(puddle);
-			bloods.add(puddle);*/
-
+			//Spawn a tutorial enemy
 			var enemy = new Enemy(352 + 128, 17*32, game, 'gunGuy');
 			game.add.existing(enemy);
 			enemies.add(enemy);
@@ -237,30 +270,38 @@ Final.Tutorial.prototype =
 			enemy.animations.play('idle');
 
 			text.destroy();
-			text = game.add.text(32, 32, '\"Hold left click and aim with the mouse to fire the gun, but be careful: ' +  
-				'once you\'ve fired you have no more blood, and will soon die.\"' +
-				'\n\"In order to regain your blood you must eat a corpse. Hold E while on top of a corpse to eat it.\"', textStyle);
+			text = game.add.bitmapText(32, 32, 'pixelFont', '\"Hold left click and aim with the mouse to fire the gun, but be' + 
+				'\ncareful: once you\'ve fired you have no more blood, and will soon' + '\ndie.\"' +
+				'\n\n\"In order to regain your blood you must eat a corpse.\"' + 
+				'\n\nHold E while on top of a corpse to eat it.', 20);
 		}
 
 		if(line == 3 && game.input.keyboard.isDown(Phaser.Keyboard.E))
 		{
+			//Setup fourth line of tutorial text
 			line = 4;
 			text.destroy();
+
+			//Spawn another tutorial enemy
 			var enemy = new Enemy(352 - 64, 17*32, game, 'gunGuy');
 			game.add.existing(enemy);
 			enemies.add(enemy);
 			enemy.animations.add('idle', Phaser.Animation.generateFrameNames('EnemyIdle', 1, 6, '', 2), 3, true);
 			enemy.animations.play('idle');
 
-			text = game.add.text(32, 32, '\"You move quicker and run out of blood slower when standing on blood.\"' +  
-				'\n\"You can also stealth kill an enemy by pressing F when near them and not seen.\"', textStyle);
+			text.destroy();
+			text = game.add.bitmapText(32, 32, 'pixelFont', '\"You move quicker and run out of blood slower when standing on'+ 
+				'\nblood.\"' +  
+				'\n\n\"You can also stealth kill an enemy by pressing F when near them' + 
+				'\nand not seen.\"', 20);
 		}
 
 		if(line == 4 && game.input.keyboard.isDown(Phaser.Keyboard.F))
 		{
+			//Setup last line of tutorial text
 			line = 5;
 			text.destroy();
-			text = game.add.text(32, 32, 'Press space to continue. . .', textStyle);
+			text = game.add.bitmapText(32, 32, 'pixelFont', 'Press space to continue. . .', 20);
 		}
 
 		if(line == 5 && game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
@@ -293,8 +334,10 @@ Final.Transition.prototype =
 	{
 		console.log('Boot: create');
 
-		var text = game.add.text(32, 350-32, 'This is story of how you break out of the facility that has tested and ' +  
-				'tortured you for years. \n\nPress space to begin your escape.', textStyle);
+		//This state is only meant as a transition between the tutorial and the main game
+		var text = game.add.bitmapText(32, 350-32, 'pixelFont', 'This is the story of how you break out of the facility that'+ 
+				'\nhas tested and tortured you for years.' + 
+				'\n\nPress SPACE to begin your escape.', 20);
 	}, 
 	update: function()
 	{
@@ -324,9 +367,9 @@ Final.Play.prototype =
 		game.physics.startSystem(Phaser.Physics.ARCADE);
 		numEnemies = 0;
 
-		walls = game.add.group();
-		walls.enableBody = true;
-
+		//setup main tilemap
+		//this is the only tilemap that will be displayed, we will load individual rooms and 
+		//copy them to this tilemap when generating the world
    	 	bigRoom = game.add.tilemap('bigRoom');
 		bigRoom.addTilesetImage('tileset', 'datGoodSheet', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
@@ -335,31 +378,43 @@ Final.Play.prototype =
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
+		//mapArr is an array of strings that contain the names of all the rooms for this level
 		var mapArr = ['room1', 'room2', 'room3', 'room4', 'room5', 'room6'];
-		var name = 'startRoom';
+		var name = 'startRoom'; //The name of the first room to spawn
 
+		//this contains the layout for the current level
+		//a string in an element means that tilemap will be copied into that spot, a 1 means a room
+		//can be placed in that spot. a 0 means that spot is empty and a room cannot be placed there
 		var graph = [	[0, 0, 0, 0, 0], 
 						[0, 0, 1, 0, 0],
 						[0, 1, name, 1, 0],
 						[0, 0, 1, 0, 0],
 						[0, 0, 0, 0, 0] ];
 
+		//randomly populate the array to generate the level
 		generate(mapArr, graph);
 
+		//add groups for blood and corpse sprites
+		bloods = game.add.group();
+		corpses = game.add.group();
+		//add groups for the enemies and their bullets
 		enemies = game.add.group();
 		enemyBullets = game.add.group();
+
+		//copy each tilemap into their correct spot in the bigRoom tilemap
 		renderRooms(graph, bigRoom, false);
 		
+		//setup collision
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
 
-		bloods = game.add.group();
-		corpses = game.add.group();
-
+		//call the generate path function for every enemy
 		enemies.forEach(generatePath, this, true, game, bigRoom.walls);
-		player = new Player(game, 'player');
+
+		player = new Player(game, 'player', game.world.width/2 , game.world.height/2 - 64);
 		game.add.existing(player);
 		
+		//add our camera object
 		sCam = game.add.sprite(player.x, player.y, 'atlas', 'cross');
 		sCam.anchor.x = 0.5;
 		sCam.anchor.y = 0.5;
@@ -375,20 +430,14 @@ Final.Play.prototype =
 
 		stairs = null;
 
-		/*stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
-		stairs.anchor.set(0.5);
-
-		var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
-		game.add.existing(arrow);*/
-
-		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
 	},
 	update: function()
 	{
 		if(this.game.canvas.style.cursor != 'crosshair')
 			this.game.canvas.style.cursor = "crosshair";
-		//game.physics.arcade.collide(enemyBullets, bigRoom.walls, bulletKill, null, this);
+
+		//check for overlap with stairs if it exists
 		if(stairs !== null)
 		{
 			game.physics.arcade.overlap(player, stairs, function() {
@@ -396,10 +445,12 @@ Final.Play.prototype =
 			}, null, this);
 		}
 
+		//setup collisions
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
 
+		//check if the player is on a blood particle
 		var onBlood = game.physics.arcade.overlap(player, bloods);
 
 		if(onBlood && !player.onBlood)
@@ -407,16 +458,10 @@ Final.Play.prototype =
 		else if(!onBlood)
 			player.onBlood = false;
 
-
-		mouseX = game.input.worldX;
-		mouseY = game.input.worldY;	
-		var tX = ((mouseX - player.x) / 6) + player.x;
-		var tY = ((mouseY - player.y) / 6) + player.y;
-
-		//enemies.forEach(drawLines, this, true, this.bitmap);
-
+		//check if each bullet is colliding with a wal
 		enemyBullets.forEach(bulletKill, this, true);
 
+		//if their are no enemies, spawn the stairs and the pointer to the stairs
 		if(numEnemies <= 0 &&  stairs === null)
 		{
 			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
@@ -429,8 +474,16 @@ Final.Play.prototype =
 
 		if(!lowspec)
 		{
+			//calculate where the camera should be
+			mouseX = game.input.worldX;
+			mouseY = game.input.worldY;	
+			var tX = ((mouseX - player.x) / 6) + player.x;
+			var tY = ((mouseY - player.y) / 6) + player.y;
+
+			//if the camera is more than 1 pixel away from the calculated spot, move it
 			if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
 			{
+				//moves slower when the distance is smaller
 				var moveSpd = (this.math.difference(tX, sCam.x) + this.math.difference(tY, sCam.y))/2 * 45;
 				this.physics.arcade.moveToXY(sCam, tX, tY, moveSpd);
 			}
@@ -440,11 +493,6 @@ Final.Play.prototype =
 				sCam.body.velocity.x = 0;
 			}
 		}
-		else
-		{
-			//sCam.x = tX;
-			//sCam.y = tY;
-		}
 	}
 };
 
@@ -452,7 +500,7 @@ Final.Upper = function()
 {
 	var cursors, player, sCam, mouseX, mouseY, walls;
 	var gunGuy, enemies, map, enemyBullets, numEnemies;
-	var bigRoom, bloods, corpses, stairs;
+	var bigRoom, bloods, corpses, stairs, stairsBool;
 };
 Final.Upper.prototype =
 {
@@ -468,9 +516,9 @@ Final.Upper.prototype =
 		game.physics.startSystem(Phaser.Physics.ARCADE);
 		numEnemies = 0;
 
-		walls = game.add.group();
-		walls.enableBody = true;
-
+		//setup main tilemap
+		//this is the only tilemap that will be displayed, we will load individual rooms and 
+		//copy them to this tilemap when generating the world
    	 	bigRoom = game.add.tilemap('bigRoomUp');
 		bigRoom.addTilesetImage('tileset', 'datGoodSheetUp', 32, 32);
 		bigRoom.background = bigRoom.createLayer('Background');
@@ -479,31 +527,43 @@ Final.Upper.prototype =
 		bigRoom.shadows = bigRoom.createLayer('Shadows');
 		bigRoom.walls.resizeWorld();
 
+		//mapArr is an array of strings that contain the names of all the rooms for this level
 		var mapArr = ['room1Up', 'room2Up', 'room3Up', 'room4Up', 'room5Up', 'room6Up'];
-		var name = 'startRoomUp';
+		var name = 'startRoomUp'; //The name of the first room to spawn
 
-		var graph = [	[0, 0, 0, 0, 0], 
+		//this contains the layout for the current level
+		//a string in an element means that tilemap will be copied into that spot, a 1 means a room
+		//can be placed in that spot. a 0 means that spot is empty and a room cannot be placed there
+		var graph = [	[0, 1, name, 1, 0], 
 						[0, 0, 1, 0, 0],
-						[0, 1, name, 1, 0],
-						[0, 0, 1, 0, 0],
+						[0, 0, 0, 0, 0],
+						[0, 0, 0, 0, 0],
 						[0, 0, 0, 0, 0] ];
 
+		//randomly populate the array to generate the level
 		generate(mapArr, graph);
 
+		//add groups for blood and corpse sprites
+		bloods = game.add.group();
+		corpses = game.add.group();
+		//add groups for the enemies and their bullets
 		enemies = game.add.group();
 		enemyBullets = game.add.group();
+
+		//copy each tilemap into their correct spot in the bigRoom tilemap
 		renderRooms(graph, bigRoom, true);
 		
+		//setup collision
 		bigRoom.setCollisionByExclusion([], true, 'Walls');
 		//bigRoom.walls.debug = true;
 
-		bloods = game.add.group();
-		corpses = game.add.group();
-
+		//call the generate path function for every enemy
 		enemies.forEach(generatePath, this, true, game, bigRoom.walls);
-		player = new Player(game, 'player');
+
+		player = new Player(game, 'player', game.world.width/2, 11*32);
 		game.add.existing(player);
 		
+		//add our camera object
 		sCam = game.add.sprite(player.x, player.y, 'atlas', 'cross');
 		sCam.anchor.x = 0.5;
 		sCam.anchor.y = 0.5;
@@ -518,32 +578,34 @@ Final.Upper.prototype =
 			game.camera.follow(player, null, .1, .1);
 
 		stairs = null;
+		stairs = game.add.sprite(game.world.width/2, 128 + 64, 'atlas', 'SlidingDoor01');
+		game.physics.arcade.enable(stairs);
+		stairs.anchor.set(0.5, 0.5);
+		stairs.body.immovable = true;
+		stairsBool = false;
 
-		/*stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
-		stairs.anchor.set(0.5);
-
-		var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
-		game.add.existing(arrow);*/
-
-		walls.setAll('body.immovable', true);
 		cursors = game.input.keyboard.createCursorKeys();
 	},
 	update: function()
 	{
 		if(this.game.canvas.style.cursor != 'crosshair')
 			this.game.canvas.style.cursor = "crosshair";
-		//game.physics.arcade.collide(enemyBullets, bigRoom.walls, bulletKill, null, this);
-		if(stairs !== null)
+
+		//check for overlap with stairs if it exists
+		if(stairsBool)
 		{
 			game.physics.arcade.overlap(player, stairs, function() {
-				game.state.start('Upper');
+				game.state.start('Won');
 			}, null, this);
 		}
 
+		//setup collisions
+		game.physics.arcade.collide(player, stairs);
 		game.physics.arcade.collide(player, bigRoom.walls);
 		game.physics.arcade.collide(enemies, bigRoom.walls);
 		game.physics.arcade.overlap(player, enemyBullets, deadFun, null, this);
 
+		//check if the player is on a blood particle
 		var onBlood = game.physics.arcade.overlap(player, bloods);
 
 		if(onBlood && !player.onBlood)
@@ -551,30 +613,31 @@ Final.Upper.prototype =
 		else if(!onBlood)
 			player.onBlood = false;
 
-
-		mouseX = game.input.worldX;
-		mouseY = game.input.worldY;	
-		var tX = ((mouseX - player.x) / 6) + player.x;
-		var tY = ((mouseY - player.y) / 6) + player.y;
-
+		//check if each bullet is colliding with a wal
 		enemyBullets.forEach(bulletKill, this, true);
 
-		//enemies.forEach(drawLines, this, true, this.bitmap);
-
-		if(numEnemies <= 0 &&  stairs === null)
+		//if their are no enemies, spawn the stairs and the pointer to the stairs
+		if(numEnemies <= 0)
 		{
-			stairs = game.add.sprite(game.world.width/2 + 3*32, game.world.height/2 - 64 - 16, 'atlas', 'stairs');
-			stairs.anchor.set(0.5);
-			game.physics.arcade.enable(stairs);
+			stairs.frameName = 'SlidingDoor02';
 
+			stairsBool = true;
 			var arrow = new Arrow(game, stairs, 1, 0, player.x, player.y);
 			game.add.existing(arrow);
 		}
 
 		if(!lowspec)
 		{
+			//calculate where the camera should be
+			mouseX = game.input.worldX;
+			mouseY = game.input.worldY;	
+			var tX = ((mouseX - player.x) / 6) + player.x;
+			var tY = ((mouseY - player.y) / 6) + player.y;
+
+			//if the camera is more than 1 pixel away from the calculated spot, move it
 			if(	this.math.difference(tX, sCam.x) > 1 || this.math.difference(tY, sCam.y) > 1)
 			{
+				//moves slower when the distance is smaller
 				var moveSpd = (this.math.difference(tX, sCam.x) + this.math.difference(tY, sCam.y))/2 * 45;
 				this.physics.arcade.moveToXY(sCam, tX, tY, moveSpd);
 			}
@@ -583,11 +646,6 @@ Final.Upper.prototype =
 				sCam.body.velocity.y = 0;
 				sCam.body.velocity.x = 0;
 			}
-		}
-		else
-		{
-			//sCam.x = tX;
-			//sCam.y = tY;
 		}
 	}
 };
@@ -605,14 +663,42 @@ Final.Dead.prototype =
 	create: function()
 	{
 		console.log('Dead: create');
-		this.add.text(25, 180, 'You died.\nPress Space to Restart!', textStyle);
 		cursors = game.input.keyboard.createCursorKeys();
+		this.add.image(0, 0, 'deathBG');
 	},
 	update: function()
 	{
 		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
 		{
 			game.state.start('Play');
+		}
+	}
+};
+
+Final.Won = function()
+{
+	var cursors;
+};
+Final.Won.prototype =
+{
+	preload: function()
+	{
+		console.log('Won: preload');
+	},
+	create: function()
+	{
+		console.log('Won: create');
+		cursors = game.input.keyboard.createCursorKeys();
+		this.add.image(0, 0, 'winBG');
+		var player = this.add.sprite(280, 620, 'atlas', 'pl_RightIdle01');
+		player.animations.add('rightIdle', Phaser.Animation.generateFrameNames('pl_RightIdle', 1, 2, '', 2), 2, true);
+		player.animations.play('rightIdle');
+	},
+	update: function()
+	{
+		if(game.input.keyboard.isDown(Phaser.Keyboard.SPACEBAR))
+		{
+			game.state.start('Credits');
 		}
 	}
 };
@@ -655,6 +741,10 @@ function startTutorial()
 {
 	game.state.start('Tutorial');
 }
+function startCredits()
+{
+	game.state.start('Credits');
+}
 function toggleFPS(button)
 {
 	lowspec = !lowspec;
@@ -679,9 +769,11 @@ var game = new Phaser.Game(700, 700, Phaser.AUTO);
 // add states
 game.state.add('Boot', Final.Boot);
 game.state.add('MainMenu', Final.MainMenu);
+game.state.add('Credits', Final.Credits);
 game.state.add('Tutorial', Final.Tutorial);
 game.state.add('Transition', Final.Transition);
 game.state.add('Play', Final.Play);
 game.state.add('Upper', Final.Upper);
 game.state.add('Dead', Final.Dead);
+game.state.add('Won', Final.Won);
 game.state.start('Boot');
